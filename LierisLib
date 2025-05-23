@@ -765,8 +765,8 @@ function Lieris:CreateWindow(config)
     main.Size = windowSize
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.AnchorPoint = Vector2.new(0.5, 0.5)
-    main.BackgroundColor3 = Color3.fromRGB(12, 20, 45)  -- Элегантная темная основа
-    main.BackgroundTransparency = 0.05  -- Почти непрозрачная для лучшего контраста
+    main.BackgroundColor3 = Color3.fromRGB(25, 35, 65)  -- Ярко-синяя основа
+    main.BackgroundTransparency = 0  -- ПОЛНОСТЬЮ НЕПРОЗРАЧНЫЙ
     main.BorderSizePixel = 0
     main.Parent = screenGui
     
@@ -776,45 +776,25 @@ function Lieris:CreateWindow(config)
     -- Remove blur effect to prevent background blurring
     -- blur effect removed for better visibility
     
-    -- ПОЧТИ НЕВИДИМЫЙ СИНЕ-ГОЛУБОЙ ГРАДИЕНТ ✨
+    -- КРАСИВЫЙ СИНИЙ ГРАДИЕНТ 🔵
     createGradient(main, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),    -- Светло-синий
-        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(120, 180, 255)),  -- Голубой
-        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(80, 140, 255)),   -- Мягкий синий
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(110, 160, 255))     -- Светло-голубой
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 50, 120)),      -- Темно-синий
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 70, 160)),    -- Средний синий
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 45, 100))       -- Глубокий синий
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.95),    -- Почти полная прозрачность
-        NumberSequenceKeypoint.new(0.5, 0.97),  -- Максимальная прозрачность
-        NumberSequenceKeypoint.new(1, 0.96)     -- Едва заметный
+        NumberSequenceKeypoint.new(0, 0),       -- ПОЛНОСТЬЮ НЕПРОЗРАЧНЫЙ
+        NumberSequenceKeypoint.new(0.5, 0.1),   -- Слегка прозрачный
+        NumberSequenceKeypoint.new(1, 0.05)     -- Почти непрозрачный
     }, 45)
     
-    -- ТОНКИЙ ГОЛУБОЙ ЭФФЕКТ ПРОЗРАЧНОСТИ 💙
-    local glassOverlay = Instance.new("Frame")
-    glassOverlay.Name = "GlassOverlay"
-    glassOverlay.Size = UDim2.new(1, 0, 1, 0)
-    glassOverlay.Position = UDim2.new(0, 0, 0, 0)
-    glassOverlay.BackgroundTransparency = 0.8  -- Высокая прозрачность
-    glassOverlay.BorderSizePixel = 0
-    glassOverlay.ZIndex = main.ZIndex + 1
-    glassOverlay.Parent = main
-    
-    createCorner(glassOverlay, 20)
-    createGradient(glassOverlay, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 200, 255)),    -- Очень светлый голубой
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 220, 255)),  -- Мягкий голубой
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 210, 255))     -- Нежный голубой
-    }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.92),   -- Почти невидимый
-        NumberSequenceKeypoint.new(0.5, 0.95), -- Максимальная прозрачность
-        NumberSequenceKeypoint.new(1, 0.93)    -- Едва заметный
-    }, 135)
+    -- УБИРАЕМ ПРОЗРАЧНЫЙ ОВЕРЛЕЙ - делаем GUI видимым
     
     -- СОВРЕМЕННЫЙ ПОЛУПРОЗРАЧНЫЙ TITLE BAR 🎨
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
     titleBar.Size = UDim2.new(1, 0, 0, scale(70))
-    titleBar.BackgroundColor3 = Color3.fromRGB(100, 160, 255)  -- Синий-голубой
-    titleBar.BackgroundTransparency = 0.85  -- Очень прозрачный
+    titleBar.BackgroundColor3 = Color3.fromRGB(40, 80, 180)  -- Яркий синий
+    titleBar.BackgroundTransparency = 0  -- ПОЛНОСТЬЮ НЕПРОЗРАЧНЫЙ
     titleBar.BorderSizePixel = 0
     titleBar.Parent = main
     
@@ -919,8 +899,8 @@ function Lieris:CreateWindow(config)
     discordBtn.Name = "DiscordButton"
     discordBtn.Size = UDim2.new(0, scale(70), 0, scale(35))  -- Делаем в 2 раза шире!
     discordBtn.Position = UDim2.new(0, 0, 0, 0)
-    discordBtn.BackgroundColor3 = Color3.fromRGB(59, 130, 246)  -- Яркий синий Discord
-    discordBtn.BackgroundTransparency = 0
+    discordBtn.BackgroundColor3 = Color3.fromRGB(37, 99, 235)  -- Красивый синий Discord
+    discordBtn.BackgroundTransparency = 0  -- ПОЛНОСТЬЮ НЕПРОЗРАЧНЫЙ
     discordBtn.BorderSizePixel = 0
     discordBtn.Font = Enum.Font.GothamBold
     discordBtn.Text = "Discord"  -- Полноценная Discord кнопка
