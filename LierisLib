@@ -5,7 +5,7 @@
                         Ultimate Premium Interface Suite                             
                            Developed by elldries                                      
                                                                                        
-       Discord: https://discord.gg/TmyBPH539k                                        
+       Discord: https://discord.gg/tN4pPvh6qa                                        
        The most beautiful UI library for Roblox                                      
                                                                                        
     ═══════════════════════════════════════════════════════════════════════════════════
@@ -38,7 +38,7 @@ local Lieris = {
     Version = "4.0.0",
     Build = "Ultimate",
     Developer = "elldries",
-    Discord = "https://discord.gg/TmyBPH539k",
+    Discord = "https://discord.gg/tN4pPvh6qa",
     
     Windows = {},
     Flags = {},
@@ -205,7 +205,7 @@ end
 
 -- Discord Integration
 local function openDiscord()
-    local discordLink = "https://discord.gg/TmyBPH539k"
+    local discordLink = "https://discord.gg/tN4pPvh6qa"
     
     -- Try different methods to open browser
     if setclipboard then
@@ -219,7 +219,7 @@ local function openDiscord()
     else
         Lieris:CreateNotification({
             Title = "Discord Server",
-            Content = "Join our Discord: discord.gg/TmyBPH539k",
+            Content = "Join our Discord: discord.gg/tN4pPvh6qa",
             Duration = 7,
             Type = "Info"
         })
@@ -552,9 +552,9 @@ local function createUltimateLoadingScreen()
         ColorSequenceKeypoint.new(0.8, Color3.fromRGB(30, 50, 90)),     -- Возврат к синему
         ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 15, 35))        -- Завершение темным
     }, NumberSequence.new{
-        ColorSequenceKeypoint.new(0, 0),
-        ColorSequenceKeypoint.new(0.5, 0.1),
-        ColorSequenceKeypoint.new(1, 0.05)
+        NumberSequenceKeypoint.new(0, 0),
+        NumberSequenceKeypoint.new(0.5, 0.1),
+        NumberSequenceKeypoint.new(1, 0.05)
     }, 135)  -- Диагональный градиент
     
     -- Main container
@@ -1724,7 +1724,7 @@ if not getgenv().LierisUltimateLoaded then
             })
             
             InfoTab:CreateLabel({
-                Text = "Discord: discord.gg/TmyBPH539k"
+                Text = "Discord: discord.gg/tN4pPvh6qa"
             })
             
             InfoTab:CreateSection({
@@ -1779,7 +1779,7 @@ if not getgenv().LierisUltimateLoaded then
             print("✓ Beautiful animations and effects")
             print("✓ Toggle and slider components working")
             print("✓ Developer: elldries")
-            print("✓ Discord: discord.gg/TmyBPH539k")
+            print("✓ Discord: discord.gg/tN4pPvh6qa")
             print("═══════════════════════════════════════════════════════")
         end
     end)
