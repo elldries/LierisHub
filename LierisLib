@@ -818,7 +818,7 @@ function Lieris:CreateWindow(config)
         ColorSequenceKeypoint.new(0.2, Color3.fromRGB(99, 102, 241)),   -- Фиолетово-синий  
         ColorSequenceKeypoint.new(0.4, Color3.fromRGB(139, 92, 246)),   -- Светло-фиолетовый
         ColorSequenceKeypoint.new(0.6, Color3.fromRGB(168, 85, 247)),   -- Яркий фиолетовый
-        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(236, 72, 153)),   -- Розово-фиолетовый
+        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(255, 255, 255)),   -- Белый цвет!
         ColorSequenceKeypoint.new(1, Color3.fromRGB(59, 130, 246))      -- Возврат к синему
     }, NumberSequence.new{
         NumberSequenceKeypoint.new(0, 0.05),
@@ -856,7 +856,7 @@ function Lieris:CreateWindow(config)
     createGradient(logoFrame, ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(59, 130, 246)),     -- Синий
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(139, 92, 246)),   -- Фиолетовый
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(236, 72, 153))      -- Розовый
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))      -- Белый цвет!
     }, NumberSequence.new{
         NumberSequenceKeypoint.new(0, 0.1),
         NumberSequenceKeypoint.new(1, 0.3)
@@ -897,15 +897,15 @@ function Lieris:CreateWindow(config)
     -- Control buttons
     local controlsFrame = Instance.new("Frame")
     controlsFrame.Name = "Controls"
-    controlsFrame.Size = UDim2.new(0, scale(120), 0, scale(40))
+    controlsFrame.Size = UDim2.new(0, scale(150), 0, scale(40))  -- Увеличиваем для широкой Discord кнопки
     controlsFrame.Position = UDim2.new(1, -scale(130), 0, scale(15))
     controlsFrame.BackgroundTransparency = 1
     controlsFrame.Parent = titleBar
     
-    -- Discord button
+    -- Discord button (делаем шире под текст)
     local discordBtn = Instance.new("TextButton")
     discordBtn.Name = "DiscordButton"
-    discordBtn.Size = UDim2.new(0, scale(35), 0, scale(35))
+    discordBtn.Size = UDim2.new(0, scale(70), 0, scale(35))  -- Делаем в 2 раза шире!
     discordBtn.Position = UDim2.new(0, 0, 0, 0)
     discordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     discordBtn.BackgroundTransparency = 0
@@ -923,8 +923,8 @@ function Lieris:CreateWindow(config)
         NumberSequenceKeypoint.new(0, 0.1),
         NumberSequenceKeypoint.new(1, 0.3)
     }, 45)
-    discordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    discordBtn.TextSize = scale(16)
+    discordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Белый текст!
+    discordBtn.TextSize = scale(12)  -- Меньший размер для широкой кнопки
     discordBtn.Parent = controlsFrame
     
     createCorner(discordBtn, 10)
@@ -940,7 +940,7 @@ function Lieris:CreateWindow(config)
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "CloseButton"
     closeBtn.Size = UDim2.new(0, scale(35), 0, scale(35))
-    closeBtn.Position = UDim2.new(0, scale(42), 0, 0)  -- Перемещаем ближе, так как убрали minimize
+    closeBtn.Position = UDim2.new(0, scale(75), 0, 0)  -- Рядом с широкой Discord кнопкой
     closeBtn.BackgroundColor3 = Lieris.Theme.Error
     closeBtn.BackgroundTransparency = 0
     closeBtn.BorderSizePixel = 0
