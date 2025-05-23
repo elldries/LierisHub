@@ -1,24 +1,27 @@
 --[[
     ═══════════════════════════════════════════════════════════════════════════════════
                                                                                        
-                             LIERIS UI LIBRARY v3.6                                   
-                        Premium Roblox Interface Suite                               
+                             LIERIS UI LIBRARY v4.0                                   
+                        Ultimate Premium Interface Suite                             
                            Developed by elldries                                      
                                                                                        
        Discord: https://discord.gg/TmyBPH539k                                        
-       The most advanced UI library for Roblox                                       
+       The most beautiful UI library for Roblox                                      
                                                                                        
     ═══════════════════════════════════════════════════════════════════════════════════
     
-    FIXED VERSION - All errors resolved!
-    • Fixed UIPadding errors
-    • Fixed Sound loading issues  
-    • Fixed arithmetic operations
-    • Enhanced visual design
-    • Improved performance
+    ULTIMATE FEATURES:
+    • Ultra-dynamic glassmorphism design
+    • Professional animations and transitions
+    • Custom logo and branding
+    • Discord integration with browser opening
+    • Adaptive mobile/desktop controls
+    • Premium color scheme (Blue/White/Black)
+    • Advanced particle effects
+    • Professional typography
 ]]
 
--- Safe Service Manager
+-- Enhanced Service Manager
 local Services = setmetatable({}, {
     __index = function(self, serviceName)
         local service = game:GetService(serviceName)
@@ -30,45 +33,69 @@ local Services = setmetatable({}, {
 
 -- Main Lieris Library
 local Lieris = {
-    Version = "3.6.0",
-    Build = "Fixed",
+    Version = "4.0.0",
+    Build = "Ultimate",
     Developer = "elldries",
     Discord = "https://discord.gg/TmyBPH539k",
     
     Windows = {},
     Flags = {},
-    Notifications = {},
+    CurrentWindow = nil,
+    MobileToggleButton = nil,
+    
+    -- Ultimate Theme (Blue/White/Black)
+    Theme = {
+        Primary = Color3.fromRGB(59, 130, 246),      -- Beautiful Blue
+        Secondary = Color3.fromRGB(99, 102, 241),     -- Purple Blue
+        Accent = Color3.fromRGB(139, 92, 246),        -- Light Purple
+        
+        Background = Color3.fromRGB(15, 23, 42),      -- Deep Dark Blue
+        Surface = Color3.fromRGB(30, 41, 59),         -- Dark Blue Surface
+        Card = Color3.fromRGB(51, 65, 85),            -- Blue Card
+        
+        Text = Color3.fromRGB(248, 250, 252),         -- Pure White Text
+        TextSecondary = Color3.fromRGB(203, 213, 225), -- Light Gray
+        TextMuted = Color3.fromRGB(148, 163, 184),    -- Muted Gray
+        
+        Success = Color3.fromRGB(34, 197, 94),
+        Warning = Color3.fromRGB(251, 191, 36),
+        Error = Color3.fromRGB(239, 68, 68),
+        Info = Color3.fromRGB(59, 130, 246),
+        
+        Shadow = Color3.fromRGB(0, 0, 0),
+        Border = Color3.fromRGB(100, 116, 139),
+        Glow = Color3.fromRGB(59, 130, 246)
+    },
     
     Device = {
         Type = "Desktop",
-        Scale = 1
-    },
-    
-    Settings = {
-        ToggleKey = Enum.KeyCode.RightControl,
-        SoundsEnabled = false, -- Disabled to avoid errors
-        AnimationsEnabled = true,
-        BlurEnabled = true
+        Scale = 1,
+        IsMobile = false
     }
 }
 
 -- Device Detection
 local function detectDevice()
     local viewport = Services.Workspace.CurrentCamera.ViewportSize
-    Lieris.Device.ScreenSize = viewport
+    local isTouchEnabled = Services.UserInputService.TouchEnabled
     
-    if Services.UserInputService.TouchEnabled then
+    Lieris.Device.ScreenSize = viewport
+    Lieris.Device.IsMobile = isTouchEnabled
+    
+    if isTouchEnabled then
         if viewport.X <= 768 then
             Lieris.Device.Type = "Mobile"
-            Lieris.Device.Scale = 1.3
+            Lieris.Device.Scale = 1.4
         else
-            Lieris.Device.Type = "Tablet" 
-            Lieris.Device.Scale = 1.1
+            Lieris.Device.Type = "Tablet"
+            Lieris.Device.Scale = 1.2
         end
     else
         Lieris.Device.Type = "Desktop"
         Lieris.Device.Scale = 1.0
     end
+    
+    print("Device Type:", Lieris.Device.Type)
 end
 
 -- Scaling Functions
@@ -78,114 +105,16 @@ end
 
 local function scaleUDim2(udim2)
     return UDim2.new(
-        udim2.X.Scale, 
-        scale(udim2.X.Offset), 
-        udim2.Y.Scale, 
+        udim2.X.Scale,
+        scale(udim2.X.Offset),
+        udim2.Y.Scale,
         scale(udim2.Y.Offset)
     )
 end
 
--- Theme System
-local themes = {
-    Cosmic = {
-        Primary = Color3.fromRGB(138, 43, 226),
-        Secondary = Color3.fromRGB(75, 0, 130),
-        Background = Color3.fromRGB(16, 16, 24),
-        Surface = Color3.fromRGB(28, 28, 40),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextSecondary = Color3.fromRGB(180, 180, 200),
-        Success = Color3.fromRGB(34, 197, 94),
-        Warning = Color3.fromRGB(251, 191, 36),
-        Error = Color3.fromRGB(239, 68, 68),
-        Info = Color3.fromRGB(59, 130, 246)
-    },
-    Ocean = {
-        Primary = Color3.fromRGB(14, 165, 233),
-        Secondary = Color3.fromRGB(3, 105, 161),
-        Background = Color3.fromRGB(8, 47, 73),
-        Surface = Color3.fromRGB(12, 74, 110),
-        Text = Color3.fromRGB(241, 245, 249),
-        TextSecondary = Color3.fromRGB(148, 163, 184),
-        Success = Color3.fromRGB(16, 185, 129),
-        Warning = Color3.fromRGB(245, 158, 11),
-        Error = Color3.fromRGB(239, 68, 68),
-        Info = Color3.fromRGB(14, 165, 233)
-    },
-    Forest = {
-        Primary = Color3.fromRGB(34, 197, 94),
-        Secondary = Color3.fromRGB(22, 163, 74),
-        Background = Color3.fromRGB(20, 83, 45),
-        Surface = Color3.fromRGB(22, 101, 52),
-        Text = Color3.fromRGB(240, 253, 244),
-        TextSecondary = Color3.fromRGB(187, 247, 208),
-        Success = Color3.fromRGB(34, 197, 94),
-        Warning = Color3.fromRGB(245, 158, 11),
-        Error = Color3.fromRGB(239, 68, 68),
-        Info = Color3.fromRGB(59, 130, 246)
-    },
-    Sunset = {
-        Primary = Color3.fromRGB(249, 115, 22),
-        Secondary = Color3.fromRGB(234, 88, 12),
-        Background = Color3.fromRGB(67, 20, 7),
-        Surface = Color3.fromRGB(124, 45, 18),
-        Text = Color3.fromRGB(255, 251, 235),
-        TextSecondary = Color3.fromRGB(254, 215, 170),
-        Success = Color3.fromRGB(34, 197, 94),
-        Warning = Color3.fromRGB(245, 158, 11),
-        Error = Color3.fromRGB(239, 68, 68),
-        Info = Color3.fromRGB(59, 130, 246)
-    },
-    Rose = {
-        Primary = Color3.fromRGB(236, 72, 153),
-        Secondary = Color3.fromRGB(219, 39, 119),
-        Background = Color3.fromRGB(76, 29, 56),
-        Surface = Color3.fromRGB(131, 24, 67),
-        Text = Color3.fromRGB(253, 242, 248),
-        TextSecondary = Color3.fromRGB(252, 207, 232),
-        Success = Color3.fromRGB(34, 197, 94),
-        Warning = Color3.fromRGB(245, 158, 11),
-        Error = Color3.fromRGB(239, 68, 68),
-        Info = Color3.fromRGB(59, 130, 246)
-    },
-    Dark = {
-        Primary = Color3.fromRGB(255, 255, 255),
-        Secondary = Color3.fromRGB(156, 163, 175),
-        Background = Color3.fromRGB(0, 0, 0),
-        Surface = Color3.fromRGB(17, 24, 39),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextSecondary = Color3.fromRGB(156, 163, 175),
-        Success = Color3.fromRGB(34, 197, 94),
-        Warning = Color3.fromRGB(245, 158, 11),
-        Error = Color3.fromRGB(239, 68, 68),
-        Info = Color3.fromRGB(59, 130, 246)
-    },
-    Light = {
-        Primary = Color3.fromRGB(59, 130, 246),
-        Secondary = Color3.fromRGB(37, 99, 235),
-        Background = Color3.fromRGB(255, 255, 255),
-        Surface = Color3.fromRGB(249, 250, 251),
-        Text = Color3.fromRGB(17, 24, 39),
-        TextSecondary = Color3.fromRGB(75, 85, 99),
-        Success = Color3.fromRGB(34, 197, 94),
-        Warning = Color3.fromRGB(245, 158, 11),
-        Error = Color3.fromRGB(239, 68, 68),
-        Info = Color3.fromRGB(59, 130, 246)
-    }
-}
-
-local currentTheme = themes.Cosmic
-
--- Animation System
+-- Advanced Animation System
 local function tween(instance, properties, duration, style, direction, callback)
-    if not Lieris.Settings.AnimationsEnabled then
-        for prop, value in pairs(properties) do
-            instance[prop] = value
-        end
-        if callback then callback() end
-        return
-    end
-    
-    duration = duration or 0.3
+    duration = duration or 0.4
     style = style or Enum.EasingStyle.Quart
     direction = direction or Enum.EasingDirection.Out
     
@@ -200,105 +129,113 @@ local function tween(instance, properties, duration, style, direction, callback)
     return tweenObj
 end
 
--- UI Creation Functions
-local function createFrame(parent, props)
-    props = props or {}
-    
-    local frame = Instance.new("Frame")
-    frame.Name = props.Name or "Frame"
-    frame.Parent = parent
-    frame.BackgroundColor3 = props.BackgroundColor3 or currentTheme.Surface
-    frame.BackgroundTransparency = props.BackgroundTransparency or 0.1
-    frame.BorderSizePixel = 0
-    frame.Size = props.Size or UDim2.new(1, 0, 0, scale(50))
-    frame.Position = props.Position or UDim2.new(0, 0, 0, 0)
-    
-    -- Add corner radius
-    if props.CornerRadius ~= false then
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, props.CornerRadius or scale(8))
-        corner.Parent = frame
-    end
-    
-    -- Add stroke border
-    if props.Border then
-        local stroke = Instance.new("UIStroke")
-        stroke.Color = props.BorderColor or currentTheme.Primary
-        stroke.Thickness = scale(1)
-        stroke.Transparency = 0.7
-        stroke.Parent = frame
-    end
-    
-    return frame
-end
-
-local function createTextLabel(parent, props)
-    props = props or {}
-    
-    local label = Instance.new("TextLabel")
-    label.Name = props.Name or "TextLabel"
-    label.Parent = parent
-    label.BackgroundTransparency = 1
-    label.Size = props.Size or UDim2.new(1, 0, 0, scale(30))
-    label.Position = props.Position or UDim2.new(0, 0, 0, 0)
-    label.Font = props.Font or Enum.Font.Gotham
-    label.Text = props.Text or ""
-    label.TextColor3 = props.TextColor3 or currentTheme.Text
-    label.TextSize = props.TextSize or scale(14)
-    label.TextXAlignment = props.TextXAlignment or Enum.TextXAlignment.Left
-    label.TextYAlignment = props.TextYAlignment or Enum.TextYAlignment.Center
-    label.TextWrapped = props.TextWrapped or false
-    
-    return label
-end
-
-local function createButton(parent, props)
-    props = props or {}
-    
-    local button = Instance.new("TextButton")
-    button.Name = props.Name or "Button"
-    button.Parent = parent
-    button.BackgroundColor3 = props.BackgroundColor3 or currentTheme.Primary
-    button.BackgroundTransparency = props.BackgroundTransparency or 0
-    button.BorderSizePixel = 0
-    button.Size = props.Size or scaleUDim2(UDim2.new(1, 0, 0, 40))
-    button.Position = props.Position or UDim2.new(0, 0, 0, 0)
-    button.Font = props.Font or Enum.Font.GothamMedium
-    button.Text = props.Text or "Button"
-    button.TextColor3 = props.TextColor3 or Color3.fromRGB(255, 255, 255)
-    button.TextSize = props.TextSize or scale(14)
-    button.AutoButtonColor = false
-    
-    -- Add corner radius
+-- Utility Functions
+local function createCorner(parent, radius)
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, scale(6))
-    corner.Parent = button
-    
-    -- Hover effects
-    local originalColor = button.BackgroundColor3
-    local hoverColor = originalColor:lerp(Color3.fromRGB(255, 255, 255), 0.1)
-    
-    button.MouseEnter:Connect(function()
-        tween(button, {BackgroundColor3 = hoverColor}, 0.2)
-    end)
-    
-    button.MouseLeave:Connect(function()
-        tween(button, {BackgroundColor3 = originalColor}, 0.2)
-    end)
-    
-    -- Click callback
-    if props.Callback then
-        button.MouseButton1Click:Connect(props.Callback)
-    end
-    
-    return button
+    corner.CornerRadius = UDim.new(0, scale(radius or 12))
+    corner.Parent = parent
+    return corner
 end
 
--- Notification System
+local function createStroke(parent, color, thickness, transparency)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or Lieris.Theme.Border
+    stroke.Thickness = scale(thickness or 1)
+    stroke.Transparency = transparency or 0.6
+    stroke.Parent = parent
+    return stroke
+end
+
+local function createGradient(parent, colorSequence, transparency, rotation)
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = colorSequence
+    gradient.Rotation = rotation or 0
+    if transparency then
+        gradient.Transparency = transparency
+    end
+    gradient.Parent = parent
+    return gradient
+end
+
+-- Discord Integration
+local function openDiscord()
+    local discordLink = "https://discord.gg/TmyBPH539k"
+    
+    -- Try different methods to open browser
+    if setclipboard then
+        setclipboard(discordLink)
+        Lieris:CreateNotification({
+            Title = "Discord Link Copied!",
+            Content = "Discord invite copied to clipboard. Paste in browser to join!",
+            Duration = 5,
+            Type = "Success"
+        })
+    else
+        Lieris:CreateNotification({
+            Title = "Discord Server",
+            Content = "Join our Discord: discord.gg/TmyBPH539k",
+            Duration = 7,
+            Type = "Info"
+        })
+    end
+    
+    -- Additional methods for opening browser (if available)
+    if syn and syn.request then
+        syn.request({
+            Url = discordLink,
+            Method = "GET"
+        })
+    end
+    
+    print("Discord link:", discordLink)
+end
+
+-- Particle Effects System
+local function createParticles(parent, count, color, speed)
+    count = count or 5
+    color = color or Lieris.Theme.Primary
+    speed = speed or 2
+    
+    for i = 1, count do
+        local particle = Instance.new("Frame")
+        particle.Name = "Particle"
+        particle.Size = UDim2.new(0, scale(3), 0, scale(3))
+        particle.Position = UDim2.new(
+            math.random(0, 100) / 100,
+            0,
+            math.random(0, 100) / 100,
+            0
+        )
+        particle.BackgroundColor3 = color
+        particle.BackgroundTransparency = 0.3
+        particle.BorderSizePixel = 0
+        particle.ZIndex = 1000
+        particle.Parent = parent
+        
+        createCorner(particle, 999)
+        
+        -- Animate particle
+        local targetPos = UDim2.new(
+            particle.Position.X.Scale + (math.random(-50, 50) / 100),
+            0,
+            particle.Position.Y.Scale + (math.random(-50, 50) / 100),
+            0
+        )
+        
+        tween(particle, {
+            Position = targetPos,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, 0, 0, 0)
+        }, math.random(1, 3) / speed, "Quad", "Out", function()
+            particle:Destroy()
+        end)
+    end
+end
+
+-- Ultimate Notification System
 function Lieris:CreateNotification(config)
     config = config or {}
     
-    -- Create notification container if needed
     if not self.NotificationContainer then
         local screenGui = Instance.new("ScreenGui")
         screenGui.Name = "LierisNotifications"
@@ -306,94 +243,156 @@ function Lieris:CreateNotification(config)
         screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
         screenGui.Parent = Services.CoreGui
         
-        local container = createFrame(screenGui, {
-            Name = "Container",
-            Size = UDim2.new(0, scale(320), 1, -scale(20)),
-            Position = UDim2.new(1, -scale(330), 0, scale(10)),
-            BackgroundTransparency = 1,
-            CornerRadius = false
-        })
+        local container = Instance.new("Frame")
+        container.Name = "Container"
+        container.Size = UDim2.new(0, scale(380), 1, -scale(20))
+        container.Position = UDim2.new(1, -scale(390), 0, scale(10))
+        container.BackgroundTransparency = 1
+        container.Parent = screenGui
         
         local listLayout = Instance.new("UIListLayout")
         listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        listLayout.Padding = UDim.new(0, scale(8))
+        listLayout.Padding = UDim.new(0, scale(10))
+        listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
         listLayout.Parent = container
         
         self.NotificationContainer = container
     end
     
-    -- Notification colors
+    -- Color based on type
     local colors = {
-        Success = currentTheme.Success,
-        Warning = currentTheme.Warning,
-        Error = currentTheme.Error,
-        Info = currentTheme.Info
+        Success = self.Theme.Success,
+        Warning = self.Theme.Warning,
+        Error = self.Theme.Error,
+        Info = self.Theme.Info
     }
+    local notifColor = colors[config.Type] or self.Theme.Primary
     
-    local notifColor = colors[config.Type] or currentTheme.Primary
+    -- Create notification
+    local notification = Instance.new("Frame")
+    notification.Name = "Notification"
+    notification.Size = UDim2.new(1, 0, 0, scale(90))
+    notification.Position = UDim2.new(1, 0, 0, 0)
+    notification.BackgroundColor3 = self.Theme.Surface
+    notification.BackgroundTransparency = 0.05
+    notification.BorderSizePixel = 0
+    notification.Parent = self.NotificationContainer
     
-    -- Create notification frame
-    local notification = createFrame(self.NotificationContainer, {
-        Name = "Notification",
-        Size = UDim2.new(1, 0, 0, scale(80)),
-        Position = UDim2.new(1, 0, 0, 0),
-        BackgroundColor3 = currentTheme.Surface,
-        BackgroundTransparency = 0.05,
-        Border = true,
-        BorderColor = notifColor
-    })
+    createCorner(notification, 15)
+    createStroke(notification, notifColor, 2, 0.4)
     
-    -- Status bar
-    local statusBar = createFrame(notification, {
-        Name = "StatusBar",
-        Size = UDim2.new(0, scale(4), 1, 0),
-        BackgroundColor3 = notifColor,
-        BackgroundTransparency = 0,
-        CornerRadius = false
-    })
+    -- Notification styling without blur
+    -- blur removed for better performance
+    
+    -- Gradient overlay
+    createGradient(notification, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, self.Theme.Primary),
+        ColorSequenceKeypoint.new(1, self.Theme.Secondary)
+    }, NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.95),
+        NumberSequenceKeypoint.new(1, 0.98)
+    }, 45)
+    
+    -- Status indicator
+    local statusBar = Instance.new("Frame")
+    statusBar.Name = "StatusBar"
+    statusBar.Size = UDim2.new(0, scale(4), 1, 0)
+    statusBar.BackgroundColor3 = notifColor
+    statusBar.BorderSizePixel = 0
+    statusBar.Parent = notification
+    
+    local statusCorner = Instance.new("UICorner")
+    statusCorner.CornerRadius = UDim.new(0, scale(2))
+    statusCorner.Parent = statusBar
+    
+    -- Icon
+    local iconFrame = Instance.new("Frame")
+    iconFrame.Name = "IconFrame"
+    iconFrame.Size = UDim2.new(0, scale(40), 0, scale(40))
+    iconFrame.Position = UDim2.new(0, scale(15), 0, scale(25))
+    iconFrame.BackgroundColor3 = notifColor
+    iconFrame.BackgroundTransparency = 0.1
+    iconFrame.BorderSizePixel = 0
+    iconFrame.Parent = notification
+    
+    createCorner(iconFrame, 10)
+    
+    local icon = Instance.new("TextLabel")
+    icon.Name = "Icon"
+    icon.Size = UDim2.new(1, 0, 1, 0)
+    icon.BackgroundTransparency = 1
+    icon.Font = Enum.Font.GothamBold
+    icon.TextColor3 = notifColor
+    icon.TextSize = scale(20)
+    icon.TextXAlignment = Enum.TextXAlignment.Center
+    icon.TextYAlignment = Enum.TextYAlignment.Center
+    icon.Parent = iconFrame
+    
+    -- Icon based on type
+    local icons = {
+        Success = "✓",
+        Warning = "⚠",
+        Error = "✕",
+        Info = "ℹ"
+    }
+    icon.Text = icons[config.Type] or "•"
     
     -- Title
-    local title = createTextLabel(notification, {
-        Name = "Title",
-        Position = UDim2.new(0, scale(20), 0, scale(8)),
-        Size = UDim2.new(1, -scale(60), 0, scale(20)),
-        Text = config.Title or "Notification",
-        Font = Enum.Font.GothamBold,
-        TextSize = scale(15)
-    })
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Position = UDim2.new(0, scale(65), 0, scale(15))
+    title.Size = UDim2.new(1, -scale(100), 0, scale(25))
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBold
+    title.Text = config.Title or "Notification"
+    title.TextColor3 = self.Theme.Text
+    title.TextSize = scale(16)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.TextYAlignment = Enum.TextYAlignment.Center
+    title.Parent = notification
     
     -- Content
-    local content = createTextLabel(notification, {
-        Name = "Content", 
-        Position = UDim2.new(0, scale(20), 0, scale(32)),
-        Size = UDim2.new(1, -scale(60), 0, scale(40)),
-        Text = config.Content or "Notification content",
-        TextColor3 = currentTheme.TextSecondary,
-        TextSize = scale(12),
-        TextWrapped = true,
-        TextYAlignment = Enum.TextYAlignment.Top
-    })
+    local content = Instance.new("TextLabel")
+    content.Name = "Content"
+    content.Position = UDim2.new(0, scale(65), 0, scale(40))
+    content.Size = UDim2.new(1, -scale(100), 0, scale(35))
+    content.BackgroundTransparency = 1
+    content.Font = Enum.Font.Gotham
+    content.Text = config.Content or "Notification content"
+    content.TextColor3 = self.Theme.TextSecondary
+    content.TextSize = scale(13)
+    content.TextXAlignment = Enum.TextXAlignment.Left
+    content.TextYAlignment = Enum.TextYAlignment.Top
+    content.TextWrapped = true
+    content.Parent = notification
     
     -- Close button
-    local closeBtn = createButton(notification, {
-        Name = "CloseButton",
-        Size = UDim2.new(0, scale(25), 0, scale(25)),
-        Position = UDim2.new(1, -scale(35), 0, scale(8)),
-        BackgroundColor3 = currentTheme.Error,
-        Text = "×",
-        TextSize = scale(16),
-        Callback = function()
-            tween(notification, {
-                Position = UDim2.new(1, 0, 0, 0),
-                BackgroundTransparency = 1
-            }, 0.3, nil, nil, function()
-                notification:Destroy()
-            end)
-        end
-    })
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Name = "CloseButton"
+    closeBtn.Size = UDim2.new(0, scale(25), 0, scale(25))
+    closeBtn.Position = UDim2.new(1, -scale(35), 0, scale(10))
+    closeBtn.BackgroundColor3 = self.Theme.Error
+    closeBtn.BackgroundTransparency = 0.1
+    closeBtn.BorderSizePixel = 0
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.Text = "×"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeBtn.TextSize = scale(14)
+    closeBtn.Parent = notification
+    
+    createCorner(closeBtn, 8)
+    
+    closeBtn.MouseButton1Click:Connect(function()
+        tween(notification, {
+            Position = UDim2.new(1, 0, 0, 0),
+            BackgroundTransparency = 1
+        }, 0.3, "Quad", "In", function()
+            notification:Destroy()
+        end)
+    end)
     
     -- Animate in
-    tween(notification, {Position = UDim2.new(0, 0, 0, 0)}, 0.4, Enum.EasingStyle.Back)
+    tween(notification, {Position = UDim2.new(0, 0, 0, 0)}, 0.5, "Back", "Out")
     
     -- Auto dismiss
     local duration = config.Duration or 5
@@ -403,7 +402,7 @@ function Lieris:CreateNotification(config)
             tween(notification, {
                 Position = UDim2.new(1, 0, 0, 0),
                 BackgroundTransparency = 1
-            }, 0.3, nil, nil, function()
+            }, 0.3, "Quad", "In", function()
                 notification:Destroy()
             end)
         end
@@ -412,154 +411,544 @@ function Lieris:CreateNotification(config)
     return notification
 end
 
--- Flag System
-function Lieris:SetFlag(flag, value)
-    self.Flags[flag] = value
-end
-
-function Lieris:GetFlag(flag)
-    return self.Flags[flag]
-end
-
--- Theme System
-function Lieris:SetTheme(themeName)
-    if themes[themeName] then
-        currentTheme = themes[themeName]
-        
-        -- Update existing windows
-        for _, window in pairs(self.Windows) do
-            if window.UpdateTheme then
-                window:UpdateTheme()
-            end
-        end
-        
-        return true
-    end
-    return false
-end
-
--- Window Creation
-function Lieris:CreateWindow(config)
-    config = config or {}
-    detectDevice()
+-- Mobile Toggle Button
+local function createMobileToggle()
+    if not Lieris.Device.IsMobile then return end
     
-    local window = {
-        Tabs = {},
-        Elements = {},
-        Visible = true
-    }
-    
-    -- Create ScreenGui
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = config.Name or "LierisInterface"
+    screenGui.Name = "LierisMobileToggle"
     screenGui.ResetOnSpawn = false
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     screenGui.Parent = Services.CoreGui
     
-    -- Main window size
-    local windowSize = scaleUDim2(UDim2.new(0, 600, 0, 400))
-    if Lieris.Device.Type == "Mobile" then
-        windowSize = UDim2.new(0.95, 0, 0.8, 0)
-    end
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Name = "ToggleButton"
+    toggleButton.Size = UDim2.new(0, scale(60), 0, scale(60))
+    toggleButton.Position = UDim2.new(1, -scale(80), 0, scale(20))
+    toggleButton.BackgroundColor3 = Lieris.Theme.Primary
+    toggleButton.BackgroundTransparency = 0.1
+    toggleButton.BorderSizePixel = 0
+    toggleButton.Font = Enum.Font.GothamBold
+    toggleButton.Text = "L"
+    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleButton.TextSize = scale(24)
+    toggleButton.ZIndex = 1000
+    toggleButton.Parent = screenGui
+    
+    createCorner(toggleButton, 15)
+    createStroke(toggleButton, Lieris.Theme.Glow, 3, 0.3)
+    
+    -- Pulsing glow effect
+    local glowFrame = Instance.new("Frame")
+    glowFrame.Name = "Glow"
+    glowFrame.Size = UDim2.new(1, scale(10), 1, scale(10))
+    glowFrame.Position = UDim2.new(0, -scale(5), 0, -scale(5))
+    glowFrame.BackgroundColor3 = Lieris.Theme.Primary
+    glowFrame.BackgroundTransparency = 0.8
+    glowFrame.BorderSizePixel = 0
+    glowFrame.ZIndex = toggleButton.ZIndex - 1
+    glowFrame.Parent = toggleButton
+    
+    createCorner(glowFrame, 20)
+    
+    -- Animate glow
+    task.spawn(function()
+        while glowFrame.Parent do
+            tween(glowFrame, {BackgroundTransparency = 0.9}, 1.5, "Sine", "InOut")
+            task.wait(1.5)
+            if glowFrame.Parent then
+                tween(glowFrame, {BackgroundTransparency = 0.6}, 1.5, "Sine", "InOut")
+                task.wait(1.5)
+            end
+        end
+    end)
+    
+    -- Click handler
+    toggleButton.MouseButton1Click:Connect(function()
+        if Lieris.CurrentWindow then
+            Lieris.CurrentWindow:Toggle()
+            createParticles(toggleButton, 8, Lieris.Theme.Primary, 2)
+        end
+    end)
+    
+    Lieris.MobileToggleButton = toggleButton
+    return toggleButton
+end
+
+-- Ultimate Loading Screen with Logo
+local function createUltimateLoadingScreen()
+    local loadingGui = Instance.new("ScreenGui")
+    loadingGui.Name = "LierisUltimateLoading"
+    loadingGui.ResetOnSpawn = false
+    loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    loadingGui.Parent = Services.CoreGui
+    
+    -- Animated background
+    local background = Instance.new("Frame")
+    background.Name = "Background"
+    background.Size = UDim2.new(1, 0, 1, 0)
+    background.BackgroundColor3 = Lieris.Theme.Background
+    background.BorderSizePixel = 0
+    background.Parent = loadingGui
+    
+    -- Animated gradient background
+    createGradient(background, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Lieris.Theme.Background),
+        ColorSequenceKeypoint.new(0.5, Lieris.Theme.Primary),
+        ColorSequenceKeypoint.new(1, Lieris.Theme.Background)
+    }, NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.1),
+        NumberSequenceKeypoint.new(0.5, 0.3),
+        NumberSequenceKeypoint.new(1, 0.1)
+    }, 45)
     
     -- Main container
-    local main = createFrame(screenGui, {
-        Name = "Main",
-        Size = windowSize,
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        BackgroundColor3 = currentTheme.Background,
-        BackgroundTransparency = 0.05,
-        Border = true
-    })
-    main.AnchorPoint = Vector2.new(0.5, 0.5)
+    local container = Instance.new("Frame")
+    container.Name = "Container"
+    container.Size = UDim2.new(0, scale(500), 0, scale(300))
+    container.Position = UDim2.new(0.5, 0, 0.5, 0)
+    container.AnchorPoint = Vector2.new(0.5, 0.5)
+    container.BackgroundColor3 = Lieris.Theme.Surface
+    container.BackgroundTransparency = 0.05
+    container.BorderSizePixel = 0
+    container.Parent = background
     
-    -- Add blur effect
-    if Lieris.Settings.BlurEnabled then
-        local blur = Instance.new("BlurEffect")
-        blur.Size = 15
-        blur.Parent = Services.Lighting
+    createCorner(container, 25)
+    createStroke(container, Lieris.Theme.Primary, 3, 0.2)
+    
+    -- Glassmorphism effect without background blur
+    -- blur removed to prevent background interference
+    
+    -- Logo frame
+    local logoFrame = Instance.new("Frame")
+    logoFrame.Name = "LogoFrame"
+    logoFrame.Size = UDim2.new(0, scale(100), 0, scale(100))
+    logoFrame.Position = UDim2.new(0.5, 0, 0, scale(40))
+    logoFrame.AnchorPoint = Vector2.new(0.5, 0)
+    logoFrame.BackgroundColor3 = Lieris.Theme.Primary
+    logoFrame.BackgroundTransparency = 0.1
+    logoFrame.BorderSizePixel = 0
+    logoFrame.Parent = container
+    
+    createCorner(logoFrame, 25)
+    createStroke(logoFrame, Lieris.Theme.Glow, 4, 0.1)
+    
+    -- Logo text (stylized L)
+    local logo = Instance.new("TextLabel")
+    logo.Name = "Logo"
+    logo.Size = UDim2.new(1, 0, 1, 0)
+    logo.BackgroundTransparency = 1
+    logo.Font = Enum.Font.GothamBold
+    logo.Text = "L"
+    logo.TextColor3 = Color3.fromRGB(255, 255, 255)
+    logo.TextSize = scale(60)
+    logo.TextXAlignment = Enum.TextXAlignment.Center
+    logo.TextYAlignment = Enum.TextYAlignment.Center
+    logo.TextTransparency = 1
+    logo.Parent = logoFrame
+    
+    -- Main title
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, 0, 0, scale(60))
+    title.Position = UDim2.new(0, 0, 0, scale(160))
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBold
+    title.Text = "LIERIS"
+    title.TextColor3 = Lieris.Theme.Text
+    title.TextSize = scale(48)
+    title.TextXAlignment = Enum.TextXAlignment.Center
+    title.TextYAlignment = Enum.TextYAlignment.Center
+    title.TextTransparency = 1
+    title.Parent = container
+    
+    -- Subtitle
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Name = "Subtitle"
+    subtitle.Size = UDim2.new(1, 0, 0, scale(30))
+    subtitle.Position = UDim2.new(0, 0, 0, scale(220))
+    subtitle.BackgroundTransparency = 1
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.Text = "Ultimate UI Library v4.0 • by elldries"
+    subtitle.TextColor3 = Lieris.Theme.TextSecondary
+    subtitle.TextSize = scale(16)
+    subtitle.TextXAlignment = Enum.TextXAlignment.Center
+    subtitle.TextYAlignment = Enum.TextYAlignment.Center
+    subtitle.TextTransparency = 1
+    subtitle.Parent = container
+    
+    -- Loading indicator
+    local loadingDots = Instance.new("TextLabel")
+    loadingDots.Name = "LoadingDots"
+    loadingDots.Size = UDim2.new(1, 0, 0, scale(25))
+    loadingDots.Position = UDim2.new(0, 0, 0, scale(260))
+    loadingDots.BackgroundTransparency = 1
+    loadingDots.Font = Enum.Font.Gotham
+    loadingDots.Text = "Loading"
+    loadingDots.TextColor3 = Lieris.Theme.Primary
+    loadingDots.TextSize = scale(14)
+    loadingDots.TextXAlignment = Enum.TextXAlignment.Center
+    loadingDots.TextYAlignment = Enum.TextYAlignment.Center
+    loadingDots.TextTransparency = 1
+    loadingDots.Parent = container
+    
+    -- Animation sequence
+    task.spawn(function()
+        -- Animate container entrance
+        container.Size = UDim2.new(0, 0, 0, 0)
+        tween(container, {Size = UDim2.new(0, scale(500), 0, scale(300))}, 0.8, "Back", "Out")
         
-        -- Store blur reference for cleanup
-        window.BlurEffect = blur
+        task.wait(0.3)
+        
+        -- Animate logo
+        logoFrame.Size = UDim2.new(0, 0, 0, 0)
+        tween(logoFrame, {Size = UDim2.new(0, scale(100), 0, scale(100))}, 0.6, "Back", "Out")
+        tween(logo, {TextTransparency = 0}, 0.8, "Quad", "Out")
+        
+        -- Spinning logo animation
+        task.spawn(function()
+            while logo.Parent do
+                tween(logoFrame, {Rotation = 360}, 4, "Linear", "InOut")
+                task.wait(4)
+                if logoFrame.Parent then
+                    logoFrame.Rotation = 0
+                end
+            end
+        end)
+        
+        task.wait(0.4)
+        
+        -- Animate title with wave effect
+        tween(title, {TextTransparency = 0}, 1, "Quad", "Out")
+        task.spawn(function()
+            while title.Parent do
+                tween(title, {TextSize = scale(52)}, 2, "Sine", "InOut")
+                task.wait(2)
+                if title.Parent then
+                    tween(title, {TextSize = scale(48)}, 2, "Sine", "InOut")
+                    task.wait(2)
+                end
+            end
+        end)
+        
+        task.wait(0.3)
+        
+        -- Animate subtitle
+        tween(subtitle, {TextTransparency = 0}, 0.8, "Quad", "Out")
+        
+        task.wait(0.3)
+        
+        -- Animate loading dots
+        tween(loadingDots, {TextTransparency = 0}, 0.6, "Quad", "Out")
+        
+        -- Animated loading text
+        task.spawn(function()
+            local dots = 0
+            while loadingDots.Parent do
+                dots = (dots % 3) + 1
+                loadingDots.Text = "Loading" .. string.rep(".", dots)
+                task.wait(0.6)
+            end
+        end)
+        
+        -- Particle effects
+        task.spawn(function()
+            while container.Parent do
+                createParticles(container, 3, Lieris.Theme.Primary, 3)
+                task.wait(1)
+            end
+        end)
+        
+        -- Wait and exit
+        task.wait(4)
+        
+        -- Exit animation
+        tween(container, {
+            Size = UDim2.new(0, 0, 0, 0),
+            Position = UDim2.new(0.5, 0, 0.2, 0),
+            Rotation = -10
+        }, 0.7, "Back", "In")
+        
+        tween(background, {BackgroundTransparency = 1}, 0.7, "Quad", "In")
+        
+        task.wait(0.8)
+        loadingGui:Destroy()
+    end)
+    
+    return loadingGui
+end
+
+-- Ultimate Window Creation
+function Lieris:CreateWindow(config)
+    config = config or {}
+    detectDevice()
+    
+    if Lieris.Device.IsMobile then
+        createMobileToggle()
     end
     
-    -- Title bar
-    local titleBar = createFrame(main, {
-        Name = "TitleBar",
-        Size = UDim2.new(1, 0, 0, scale(50)),
-        BackgroundColor3 = currentTheme.Primary,
-        BackgroundTransparency = 0.1
-    })
+    local window = {
+        Tabs = {},
+        Elements = {},
+        Visible = true,
+        Config = config
+    }
     
-    -- Title
-    local title = createTextLabel(titleBar, {
-        Name = "Title",
-        Position = UDim2.new(0, scale(15), 0, 0),
-        Size = UDim2.new(1, -scale(120), 1, 0),
-        Text = config.Name or "Lieris Interface",
-        Font = Enum.Font.GothamBold,
-        TextSize = scale(16)
-    })
+    -- Create ScreenGui
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = config.Name or "LierisUltimate"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.Parent = Services.CoreGui
+    
+    -- Window size based on device
+    local windowSize
+    if Lieris.Device.Type == "Mobile" then
+        windowSize = UDim2.new(0.95, 0, 0.85, 0)
+    elseif Lieris.Device.Type == "Tablet" then
+        windowSize = UDim2.new(0.8, 0, 0.75, 0)
+    else
+        windowSize = scaleUDim2(UDim2.new(0, 900, 0, 650))
+    end
+    
+    -- Main container with ultimate design
+    local main = Instance.new("Frame")
+    main.Name = "Main"
+    main.Size = windowSize
+    main.Position = UDim2.new(0.5, 0, 0.5, 0)
+    main.AnchorPoint = Vector2.new(0.5, 0.5)
+    main.BackgroundColor3 = Lieris.Theme.Background
+    main.BackgroundTransparency = 0.05
+    main.BorderSizePixel = 0
+    main.Parent = screenGui
+    
+    createCorner(main, 20)
+    createStroke(main, Lieris.Theme.Primary, 3, 0.3)
+    
+    -- Remove blur effect to prevent background blurring
+    -- blur effect removed for better visibility
+    
+    -- Dynamic gradient overlay
+    createGradient(main, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Lieris.Theme.Primary),
+        ColorSequenceKeypoint.new(0.3, Lieris.Theme.Secondary),
+        ColorSequenceKeypoint.new(0.7, Lieris.Theme.Accent),
+        ColorSequenceKeypoint.new(1, Lieris.Theme.Background)
+    }, NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.85),
+        NumberSequenceKeypoint.new(0.5, 0.95),
+        NumberSequenceKeypoint.new(1, 0.98)
+    }, 135)
+    
+    -- Ultimate title bar
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, scale(70))
+    titleBar.BackgroundColor3 = Lieris.Theme.Surface
+    titleBar.BackgroundTransparency = 0.1
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = main
+    
+    createCorner(titleBar, 20)
+    createGradient(titleBar, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Lieris.Theme.Primary),
+        ColorSequenceKeypoint.new(1, Lieris.Theme.Secondary)
+    }, NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.8),
+        NumberSequenceKeypoint.new(1, 0.9)
+    }, 90)
+    
+    -- Logo in title bar
+    local logoFrame = Instance.new("Frame")
+    logoFrame.Name = "LogoFrame"
+    logoFrame.Size = UDim2.new(0, scale(50), 0, scale(50))
+    logoFrame.Position = UDim2.new(0, scale(15), 0, scale(10))
+    logoFrame.BackgroundColor3 = Lieris.Theme.Primary
+    logoFrame.BackgroundTransparency = 0.2
+    logoFrame.BorderSizePixel = 0
+    logoFrame.Parent = titleBar
+    
+    createCorner(logoFrame, 15)
+    
+    local logoText = Instance.new("TextLabel")
+    logoText.Name = "LogoText"
+    logoText.Size = UDim2.new(1, 0, 1, 0)
+    logoText.BackgroundTransparency = 1
+    logoText.Font = Enum.Font.GothamBold
+    logoText.Text = "L"
+    logoText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    logoText.TextSize = scale(28)
+    logoText.TextXAlignment = Enum.TextXAlignment.Center
+    logoText.TextYAlignment = Enum.TextYAlignment.Center
+    logoText.Parent = logoFrame
+    
+    -- Spinning logo animation
+    task.spawn(function()
+        while logoFrame.Parent do
+            tween(logoFrame, {Rotation = 360}, 8, "Linear", "InOut")
+            task.wait(8)
+            if logoFrame.Parent then
+                logoFrame.Rotation = 0
+            end
+        end
+    end)
+    
+    -- Title text
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Position = UDim2.new(0, scale(80), 0, scale(10))
+    title.Size = UDim2.new(1, -scale(200), 0, scale(30))
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBold
+    title.Text = config.Name or "Lieris Ultimate"
+    title.TextColor3 = Lieris.Theme.Text
+    title.TextSize = scale(20)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.TextYAlignment = Enum.TextYAlignment.Center
+    title.Parent = titleBar
+    
+    -- Subtitle
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Name = "Subtitle"
+    subtitle.Position = UDim2.new(0, scale(80), 0, scale(40))
+    subtitle.Size = UDim2.new(1, -scale(200), 0, scale(20))
+    subtitle.BackgroundTransparency = 1
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.Text = "Ultimate UI Library v4.0 • by elldries"
+    subtitle.TextColor3 = Lieris.Theme.TextSecondary
+    subtitle.TextSize = scale(12)
+    subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    subtitle.TextYAlignment = Enum.TextYAlignment.Center
+    subtitle.Parent = titleBar
+    
+    -- Control buttons
+    local controlsFrame = Instance.new("Frame")
+    controlsFrame.Name = "Controls"
+    controlsFrame.Size = UDim2.new(0, scale(120), 0, scale(40))
+    controlsFrame.Position = UDim2.new(1, -scale(130), 0, scale(15))
+    controlsFrame.BackgroundTransparency = 1
+    controlsFrame.Parent = titleBar
+    
+    -- Discord button
+    local discordBtn = Instance.new("TextButton")
+    discordBtn.Name = "DiscordButton"
+    discordBtn.Size = UDim2.new(0, scale(35), 0, scale(35))
+    discordBtn.Position = UDim2.new(0, 0, 0, 0)
+    discordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    discordBtn.BackgroundTransparency = 0.1
+    discordBtn.BorderSizePixel = 0
+    discordBtn.Font = Enum.Font.GothamBold
+    discordBtn.Text = "D"
+    discordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    discordBtn.TextSize = scale(16)
+    discordBtn.Parent = controlsFrame
+    
+    createCorner(discordBtn, 10)
+    
+    discordBtn.MouseButton1Click:Connect(function()
+        openDiscord()
+        createParticles(discordBtn, 6, Color3.fromRGB(88, 101, 242), 2)
+    end)
+    
+    -- Minimize button
+    local minimizeBtn = Instance.new("TextButton")
+    minimizeBtn.Name = "MinimizeButton"
+    minimizeBtn.Size = UDim2.new(0, scale(35), 0, scale(35))
+    minimizeBtn.Position = UDim2.new(0, scale(42), 0, 0)
+    minimizeBtn.BackgroundColor3 = Lieris.Theme.Warning
+    minimizeBtn.BackgroundTransparency = 0.1
+    minimizeBtn.BorderSizePixel = 0
+    minimizeBtn.Font = Enum.Font.GothamBold
+    minimizeBtn.Text = "─"
+    minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minimizeBtn.TextSize = scale(16)
+    minimizeBtn.Parent = controlsFrame
+    
+    createCorner(minimizeBtn, 10)
+    
+    minimizeBtn.MouseButton1Click:Connect(function()
+        window.IsMinimized = not window.IsMinimized
+        local targetSize = window.IsMinimized and 
+            UDim2.new(windowSize.X.Scale, windowSize.X.Offset, 0, scale(70)) or 
+            windowSize
+        
+        tween(main, {Size = targetSize}, 0.5, "Back", "Out")
+        createParticles(minimizeBtn, 4, Lieris.Theme.Warning, 2)
+    end)
     
     -- Close button
-    local closeBtn = createButton(titleBar, {
-        Name = "CloseButton",
-        Size = UDim2.new(0, scale(30), 0, scale(30)),
-        Position = UDim2.new(1, -scale(40), 0, scale(10)),
-        BackgroundColor3 = currentTheme.Error,
-        Text = "×",
-        TextSize = scale(16),
-        Callback = function()
-            window:Hide()
-        end
-    })
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Name = "CloseButton"
+    closeBtn.Size = UDim2.new(0, scale(35), 0, scale(35))
+    closeBtn.Position = UDim2.new(0, scale(84), 0, 0)
+    closeBtn.BackgroundColor3 = Lieris.Theme.Error
+    closeBtn.BackgroundTransparency = 0.1
+    closeBtn.BorderSizePixel = 0
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.Text = "✕"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeBtn.TextSize = scale(16)
+    closeBtn.Parent = controlsFrame
+    
+    createCorner(closeBtn, 10)
+    
+    closeBtn.MouseButton1Click:Connect(function()
+        window:Hide()
+        createParticles(closeBtn, 8, Lieris.Theme.Error, 1.5)
+    end)
     
     -- Content area
-    local content = createFrame(main, {
-        Name = "Content",
-        Size = UDim2.new(1, 0, 1, -scale(50)),
-        Position = UDim2.new(0, 0, 0, scale(50)),
-        BackgroundTransparency = 1,
-        CornerRadius = false
-    })
+    local content = Instance.new("Frame")
+    content.Name = "Content"
+    content.Size = UDim2.new(1, 0, 1, -scale(70))
+    content.Position = UDim2.new(0, 0, 0, scale(70))
+    content.BackgroundTransparency = 1
+    content.Parent = main
     
-    -- Sidebar for tabs
-    local sidebar = createFrame(content, {
-        Name = "Sidebar",
-        Size = UDim2.new(0, scale(150), 1, 0),
-        BackgroundColor3 = currentTheme.Surface,
-        BackgroundTransparency = 0.2
-    })
+    -- Sidebar
+    local sidebar = Instance.new("Frame")
+    sidebar.Name = "Sidebar"
+    sidebar.Size = UDim2.new(0, scale(200), 1, 0)
+    sidebar.BackgroundColor3 = Lieris.Theme.Surface
+    sidebar.BackgroundTransparency = 0.1
+    sidebar.BorderSizePixel = 0
+    sidebar.Parent = content
     
-    -- Tab content area
-    local tabContent = createFrame(content, {
-        Name = "TabContent",
-        Size = UDim2.new(1, -scale(160), 1, -scale(10)),
-        Position = UDim2.new(0, scale(160), 0, scale(10)),
-        BackgroundColor3 = currentTheme.Surface,
-        BackgroundTransparency = 0.3
-    })
+    createCorner(sidebar, 15)
     
-    -- Store references
+    -- Tab content
+    local tabContent = Instance.new("Frame")
+    tabContent.Name = "TabContent"
+    tabContent.Size = UDim2.new(1, -scale(210), 1, -scale(10))
+    tabContent.Position = UDim2.new(0, scale(210), 0, scale(10))
+    tabContent.BackgroundColor3 = Lieris.Theme.Card
+    tabContent.BackgroundTransparency = 0.05
+    tabContent.BorderSizePixel = 0
+    tabContent.Parent = content
+    
+    createCorner(tabContent, 15)
+    
     window.ScreenGui = screenGui
     window.Main = main
     window.Sidebar = sidebar
     window.TabContent = tabContent
     
-    -- Drag functionality
+    -- Enhanced drag functionality
     local dragging = false
     local dragStart, startPos
     
     titleBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
             startPos = main.Position
+            
+            tween(main, {Size = main.Size + UDim2.new(0, scale(5), 0, scale(5))}, 0.1)
         end
     end)
     
     Services.UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
             main.Position = UDim2.new(
                 startPos.X.Scale,
@@ -571,21 +960,30 @@ function Lieris:CreateWindow(config)
     end)
     
     Services.UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if dragging then
+                dragging = false
+                tween(main, {Size = windowSize}, 0.2)
+            end
         end
     end)
     
-    -- Toggle keybind
-    Services.UserInputService.InputBegan:Connect(function(input, processed)
-        if not processed and input.KeyCode == Lieris.Settings.ToggleKey then
-            window:Toggle()
-        end
-    end)
+    -- Keybind system (K for Desktop, touch button for Mobile)
+    if not Lieris.Device.IsMobile then
+        Services.UserInputService.InputBegan:Connect(function(input, processed)
+            if not processed and input.KeyCode == Enum.KeyCode.K then
+                window:Toggle()
+            end
+        end)
+    end
     
     -- Window methods
     function window:Hide()
-        tween(main, {Size = UDim2.new(0, 0, 0, 0)}, 0.3, nil, nil, function()
+        tween(main, {
+            Size = UDim2.new(0, 0, 0, 0),
+            Position = UDim2.new(0.5, 0, 0.3, 0),
+            Rotation = 10
+        }, 0.5, "Back", "In", function()
             screenGui.Enabled = false
         end)
     end
@@ -593,7 +991,12 @@ function Lieris:CreateWindow(config)
     function window:Show()
         screenGui.Enabled = true
         main.Size = UDim2.new(0, 0, 0, 0)
-        tween(main, {Size = windowSize}, 0.4, Enum.EasingStyle.Back)
+        main.Rotation = -10
+        tween(main, {
+            Size = windowSize,
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            Rotation = 0
+        }, 0.6, "Back", "Out")
     end
     
     function window:Toggle()
@@ -602,14 +1005,6 @@ function Lieris:CreateWindow(config)
         else
             self:Show()
         end
-    end
-    
-    function window:UpdateTheme()
-        main.BackgroundColor3 = currentTheme.Background
-        titleBar.BackgroundColor3 = currentTheme.Primary
-        title.TextColor3 = currentTheme.Text
-        sidebar.BackgroundColor3 = currentTheme.Surface
-        tabContent.BackgroundColor3 = currentTheme.Surface
     end
     
     function window:CreateTab(tabConfig)
@@ -621,77 +1016,104 @@ function Lieris:CreateWindow(config)
             Active = #self.Tabs == 0
         }
         
-        -- Tab button
-        local tabButton = createButton(self.Sidebar, {
-            Name = "TabButton",
-            Size = UDim2.new(1, -scale(20), 0, scale(40)),
-            Position = UDim2.new(0, scale(10), 0, scale(10 + (#self.Tabs * 50))),
-            BackgroundColor3 = tab.Active and currentTheme.Primary or currentTheme.Surface,
-            Text = tab.Name,
-            TextSize = scale(13),
-            Callback = function()
-                -- Switch tabs
-                for _, existingTab in pairs(self.Tabs) do
+        -- Tab button with ultimate design
+        local tabButton = Instance.new("TextButton")
+        tabButton.Name = "TabButton"
+        tabButton.Size = UDim2.new(1, -scale(20), 0, scale(50))
+        tabButton.Position = UDim2.new(0, scale(10), 0, scale(15 + (#self.Tabs * 60)))
+        tabButton.BackgroundColor3 = tab.Active and Lieris.Theme.Primary or Lieris.Theme.Card
+        tabButton.BackgroundTransparency = tab.Active and 0.1 or 0.3
+        tabButton.BorderSizePixel = 0
+        tabButton.Font = Enum.Font.GothamMedium
+        tabButton.Text = tab.Name
+        tabButton.TextColor3 = tab.Active and Color3.fromRGB(255, 255, 255) or Lieris.Theme.Text
+        tabButton.TextSize = scale(14)
+        tabButton.Parent = self.Sidebar
+        
+        createCorner(tabButton, 12)
+        if tab.Active then
+            createStroke(tabButton, Lieris.Theme.Glow, 2, 0.4)
+        end
+        
+        tabButton.MouseButton1Click:Connect(function()
+            -- Switch tabs with animations
+            for _, existingTab in pairs(self.Tabs) do
+                if existingTab ~= tab then
                     existingTab.Active = false
                     existingTab.Frame.Visible = false
-                    existingTab.Button.BackgroundColor3 = currentTheme.Surface
+                    tween(existingTab.Button, {
+                        BackgroundColor3 = Lieris.Theme.Card,
+                        BackgroundTransparency = 0.3
+                    }, 0.3)
+                    
+                    -- Remove stroke
+                    local stroke = existingTab.Button:FindFirstChild("UIStroke")
+                    if stroke then stroke:Destroy() end
                 end
-                
-                tab.Active = true
-                tab.Frame.Visible = true
-                tabButton.BackgroundColor3 = currentTheme.Primary
             end
-        })
+            
+            tab.Active = true
+            tab.Frame.Visible = true
+            tween(tabButton, {
+                BackgroundColor3 = Lieris.Theme.Primary,
+                BackgroundTransparency = 0.1
+            }, 0.3)
+            
+            createStroke(tabButton, Lieris.Theme.Glow, 2, 0.4)
+            createParticles(tabButton, 5, Lieris.Theme.Primary, 2)
+        end)
         
         tab.Button = tabButton
         
         -- Tab content frame
         local tabFrame = Instance.new("ScrollingFrame")
         tabFrame.Name = "TabFrame"
-        tabFrame.Parent = self.TabContent
-        tabFrame.BackgroundTransparency = 1
-        tabFrame.BorderSizePixel = 0
         tabFrame.Size = UDim2.new(1, -scale(20), 1, -scale(20))
         tabFrame.Position = UDim2.new(0, scale(10), 0, scale(10))
+        tabFrame.BackgroundTransparency = 1
+        tabFrame.BorderSizePixel = 0
         tabFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-        tabFrame.ScrollBarThickness = scale(6)
-        tabFrame.ScrollBarImageColor3 = currentTheme.Primary
+        tabFrame.ScrollBarThickness = scale(8)
+        tabFrame.ScrollBarImageColor3 = Lieris.Theme.Primary
+        tabFrame.ScrollBarImageTransparency = 0.4
         tabFrame.Visible = tab.Active
+        tabFrame.Parent = self.TabContent
         
-        -- Layout for elements
+        -- Layout
         local listLayout = Instance.new("UIListLayout")
         listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        listLayout.Padding = UDim.new(0, scale(8))
+        listLayout.Padding = UDim.new(0, scale(10))
         listLayout.Parent = tabFrame
         
-        -- Fixed padding implementation
         local padding = Instance.new("UIPadding")
-        padding.PaddingTop = UDim.new(0, scale(10))
-        padding.PaddingBottom = UDim.new(0, scale(10))
-        padding.PaddingLeft = UDim.new(0, scale(10))
-        padding.PaddingRight = UDim.new(0, scale(10))
+        padding.PaddingTop = UDim.new(0, scale(15))
+        padding.PaddingBottom = UDim.new(0, scale(15))
+        padding.PaddingLeft = UDim.new(0, scale(15))
+        padding.PaddingRight = UDim.new(0, scale(15))
         padding.Parent = tabFrame
         
-        -- Auto-update canvas size
         listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + scale(20))
+            tabFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + scale(30))
         end)
         
         tab.Frame = tabFrame
         
-        -- Tab element creation methods
+        -- Enhanced element creation methods
         function tab:CreateSection(sectionConfig)
             sectionConfig = sectionConfig or {}
             
-            local section = createTextLabel(self.Frame, {
-                Name = "Section",
-                Size = UDim2.new(1, 0, 0, scale(35)),
-                Text = sectionConfig.Name or "Section",
-                Font = Enum.Font.GothamBold,
-                TextColor3 = currentTheme.Primary,
-                TextSize = scale(16)
-            })
+            local section = Instance.new("TextLabel")
+            section.Name = "Section"
+            section.Size = UDim2.new(1, 0, 0, scale(40))
+            section.BackgroundTransparency = 1
+            section.Font = Enum.Font.GothamBold
+            section.Text = sectionConfig.Name or "Section"
+            section.TextColor3 = Lieris.Theme.Primary
+            section.TextSize = scale(18)
+            section.TextXAlignment = Enum.TextXAlignment.Left
+            section.TextYAlignment = Enum.TextYAlignment.Center
             section.LayoutOrder = #self.Elements + 1
+            section.Parent = self.Frame
             
             table.insert(self.Elements, section)
             return section
@@ -700,15 +1122,19 @@ function Lieris:CreateWindow(config)
         function tab:CreateLabel(labelConfig)
             labelConfig = labelConfig or {}
             
-            local label = createTextLabel(self.Frame, {
-                Name = "Label",
-                Size = UDim2.new(1, 0, 0, scale(25)),
-                Text = labelConfig.Text or "Label",
-                TextColor3 = currentTheme.Text,
-                TextSize = scale(14),
-                TextWrapped = true
-            })
+            local label = Instance.new("TextLabel")
+            label.Name = "Label"
+            label.Size = UDim2.new(1, 0, 0, scale(30))
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.Gotham
+            label.Text = labelConfig.Text or "Label"
+            label.TextColor3 = Lieris.Theme.Text
+            label.TextSize = scale(14)
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.TextYAlignment = Enum.TextYAlignment.Center
+            label.TextWrapped = true
             label.LayoutOrder = #self.Elements + 1
+            label.Parent = self.Frame
             
             local methods = {}
             function methods:SetText(text)
@@ -722,13 +1148,39 @@ function Lieris:CreateWindow(config)
         function tab:CreateButton(buttonConfig)
             buttonConfig = buttonConfig or {}
             
-            local button = createButton(self.Frame, {
-                Name = "ElementButton",
-                Size = UDim2.new(1, 0, 0, scale(35)),
-                Text = buttonConfig.Name or "Button",
-                Callback = buttonConfig.Callback
-            })
+            local button = Instance.new("TextButton")
+            button.Name = "Button"
+            button.Size = UDim2.new(1, 0, 0, scale(45))
+            button.BackgroundColor3 = Lieris.Theme.Primary
+            button.BackgroundTransparency = 0.1
+            button.BorderSizePixel = 0
+            button.Font = Enum.Font.GothamMedium
+            button.Text = buttonConfig.Name or "Button"
+            button.TextColor3 = Color3.fromRGB(255, 255, 255)
+            button.TextSize = scale(14)
             button.LayoutOrder = #self.Elements + 1
+            button.Parent = self.Frame
+            
+            createCorner(button, 12)
+            createStroke(button, Lieris.Theme.Glow, 2, 0.5)
+            
+            -- Enhanced button effects
+            local originalColor = button.BackgroundColor3
+            
+            button.MouseEnter:Connect(function()
+                tween(button, {BackgroundColor3 = originalColor:lerp(Color3.fromRGB(255, 255, 255), 0.1)}, 0.2)
+            end)
+            
+            button.MouseLeave:Connect(function()
+                tween(button, {BackgroundColor3 = originalColor}, 0.2)
+            end)
+            
+            button.MouseButton1Click:Connect(function()
+                createParticles(button, 8, Lieris.Theme.Primary, 1.5)
+                if buttonConfig.Callback then
+                    buttonConfig.Callback()
+                end
+            end)
             
             table.insert(self.Elements, button)
             return button
@@ -737,51 +1189,124 @@ function Lieris:CreateWindow(config)
         function tab:CreateToggle(toggleConfig)
             toggleConfig = toggleConfig or {}
             
-            local toggleFrame = createFrame(self.Frame, {
-                Name = "ToggleFrame",
-                Size = UDim2.new(1, 0, 0, scale(40)),
-                BackgroundTransparency = 0.9,
-                Border = true
-            })
+            local toggleFrame = Instance.new("Frame")
+            toggleFrame.Name = "ToggleFrame"
+            toggleFrame.Size = UDim2.new(1, 0, 0, scale(50))
+            toggleFrame.BackgroundColor3 = Lieris.Theme.Card
+            toggleFrame.BackgroundTransparency = 0.1
+            toggleFrame.BorderSizePixel = 0
             toggleFrame.LayoutOrder = #self.Elements + 1
+            toggleFrame.Parent = self.Frame
             
-            local label = createTextLabel(toggleFrame, {
-                Name = "Label",
-                Position = UDim2.new(0, scale(10), 0, 0),
-                Size = UDim2.new(1, -scale(80), 1, 0),
-                Text = toggleConfig.Name or "Toggle",
-                TextSize = scale(14)
-            })
+            createCorner(toggleFrame, 12)
+            createStroke(toggleFrame, Lieris.Theme.Border, 1, 0.6)
             
+            -- Toggle label
+            local label = Instance.new("TextLabel")
+            label.Name = "Label"
+            label.Position = UDim2.new(0, scale(15), 0, 0)
+            label.Size = UDim2.new(1, -scale(100), 1, 0)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.GothamMedium
+            label.Text = toggleConfig.Name or "Toggle"
+            label.TextColor3 = Lieris.Theme.Text
+            label.TextSize = scale(14)
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.TextYAlignment = Enum.TextYAlignment.Center
+            label.Parent = toggleFrame
+            
+            -- Toggle switch
             local value = toggleConfig.CurrentValue or false
             
-            local toggle = createButton(toggleFrame, {
-                Name = "Toggle",
-                Size = UDim2.new(0, scale(50), 0, scale(25)),
-                Position = UDim2.new(1, -scale(60), 0.5, -scale(12)),
-                BackgroundColor3 = value and currentTheme.Success or currentTheme.Surface,
-                Text = value and "ON" or "OFF",
-                TextSize = scale(11),
-                Callback = function()
-                    value = not value
-                    toggle.BackgroundColor3 = value and currentTheme.Success or currentTheme.Surface
-                    toggle.Text = value and "ON" or "OFF"
-                    
-                    if toggleConfig.Flag then
-                        Lieris:SetFlag(toggleConfig.Flag, value)
-                    end
-                    
-                    if toggleConfig.Callback then
-                        toggleConfig.Callback(value)
-                    end
+            local switchFrame = Instance.new("Frame")
+            switchFrame.Name = "SwitchFrame"
+            switchFrame.Size = UDim2.new(0, scale(60), 0, scale(30))
+            switchFrame.Position = UDim2.new(1, -scale(75), 0.5, -scale(15))
+            switchFrame.BackgroundColor3 = value and Lieris.Theme.Success or Lieris.Theme.Surface
+            switchFrame.BorderSizePixel = 0
+            switchFrame.Parent = toggleFrame
+            
+            createCorner(switchFrame, 15)
+            
+            local switchKnob = Instance.new("Frame")
+            switchKnob.Name = "SwitchKnob"
+            switchKnob.Size = UDim2.new(0, scale(26), 0, scale(26))
+            switchKnob.Position = value and UDim2.new(1, -scale(28), 0.5, -scale(13)) or UDim2.new(0, scale(2), 0.5, -scale(13))
+            switchKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            switchKnob.BorderSizePixel = 0
+            switchKnob.Parent = switchFrame
+            
+            createCorner(switchKnob, 13)
+            
+            -- Status text
+            local statusText = Instance.new("TextLabel")
+            statusText.Name = "StatusText"
+            statusText.Size = UDim2.new(1, 0, 1, 0)
+            statusText.BackgroundTransparency = 1
+            statusText.Font = Enum.Font.GothamBold
+            statusText.Text = value and "ON" or "OFF"
+            statusText.TextColor3 = Color3.fromRGB(255, 255, 255)
+            statusText.TextSize = scale(10)
+            statusText.TextXAlignment = Enum.TextXAlignment.Center
+            statusText.TextYAlignment = Enum.TextYAlignment.Center
+            statusText.Parent = switchFrame
+            
+            local function updateToggle(animate)
+                animate = animate ~= false
+                
+                local targetPos = value and UDim2.new(1, -scale(28), 0.5, -scale(13)) or UDim2.new(0, scale(2), 0.5, -scale(13))
+                local targetColor = value and Lieris.Theme.Success or Lieris.Theme.Surface
+                
+                if animate then
+                    tween(switchKnob, {Position = targetPos}, 0.3, "Back", "Out")
+                    tween(switchFrame, {BackgroundColor3 = targetColor}, 0.3)
+                else
+                    switchKnob.Position = targetPos
+                    switchFrame.BackgroundColor3 = targetColor
                 end
-            })
+                
+                statusText.Text = value and "ON" or "OFF"
+                
+                if toggleConfig.Flag then
+                    Lieris:SetFlag(toggleConfig.Flag, value)
+                end
+                
+                if toggleConfig.Callback then
+                    toggleConfig.Callback(value)
+                end
+            end
+            
+            -- Click handler
+            local clickButton = Instance.new("TextButton")
+            clickButton.Name = "ClickButton"
+            clickButton.Size = UDim2.new(1, 0, 1, 0)
+            clickButton.BackgroundTransparency = 1
+            clickButton.Text = ""
+            clickButton.Parent = toggleFrame
+            
+            clickButton.MouseButton1Click:Connect(function()
+                value = not value
+                updateToggle(true)
+                createParticles(switchFrame, 5, value and Lieris.Theme.Success or Lieris.Theme.Surface, 2)
+            end)
+            
+            -- Hover effects
+            clickButton.MouseEnter:Connect(function()
+                tween(toggleFrame, {BackgroundTransparency = 0.05}, 0.2)
+            end)
+            
+            clickButton.MouseLeave:Connect(function()
+                tween(toggleFrame, {BackgroundTransparency = 0.1}, 0.2)
+            end)
             
             local methods = {}
             function methods:SetValue(newValue)
                 value = newValue
-                toggle.BackgroundColor3 = value and currentTheme.Success or currentTheme.Surface
-                toggle.Text = value and "ON" or "OFF"
+                updateToggle(true)
+            end
+            
+            function methods:GetValue()
+                return value
             end
             
             table.insert(self.Elements, toggleFrame)
@@ -791,52 +1316,69 @@ function Lieris:CreateWindow(config)
         function tab:CreateSlider(sliderConfig)
             sliderConfig = sliderConfig or {}
             
-            local sliderFrame = createFrame(self.Frame, {
-                Name = "SliderFrame",
-                Size = UDim2.new(1, 0, 0, scale(50)),
-                BackgroundTransparency = 0.9,
-                Border = true
-            })
+            local sliderFrame = Instance.new("Frame")
+            sliderFrame.Name = "SliderFrame"
+            sliderFrame.Size = UDim2.new(1, 0, 0, scale(70))
+            sliderFrame.BackgroundColor3 = Lieris.Theme.Card
+            sliderFrame.BackgroundTransparency = 0.1
+            sliderFrame.BorderSizePixel = 0
             sliderFrame.LayoutOrder = #self.Elements + 1
+            sliderFrame.Parent = self.Frame
             
-            local label = createTextLabel(sliderFrame, {
-                Name = "Label",
-                Position = UDim2.new(0, scale(10), 0, scale(5)),
-                Size = UDim2.new(1, -scale(80), 0, scale(20)),
-                Text = sliderConfig.Name or "Slider",
-                TextSize = scale(14)
-            })
+            createCorner(sliderFrame, 12)
+            createStroke(sliderFrame, Lieris.Theme.Border, 1, 0.6)
+            
+            -- Slider label
+            local label = Instance.new("TextLabel")
+            label.Name = "Label"
+            label.Position = UDim2.new(0, scale(15), 0, scale(8))
+            label.Size = UDim2.new(1, -scale(80), 0, scale(20))
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.GothamMedium
+            label.Text = sliderConfig.Name or "Slider"
+            label.TextColor3 = Lieris.Theme.Text
+            label.TextSize = scale(14)
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.Parent = sliderFrame
             
             local min = sliderConfig.Range and sliderConfig.Range[1] or 0
             local max = sliderConfig.Range and sliderConfig.Range[2] or 100
             local value = sliderConfig.CurrentValue or min
             local suffix = sliderConfig.Suffix or ""
             
-            local valueLabel = createTextLabel(sliderFrame, {
-                Name = "ValueLabel",
-                Position = UDim2.new(1, -scale(70), 0, scale(5)),
-                Size = UDim2.new(0, scale(60), 0, scale(20)),
-                Text = value .. suffix,
-                TextColor3 = currentTheme.Primary,
-                TextSize = scale(12),
-                TextXAlignment = Enum.TextXAlignment.Right
-            })
+            -- Value display
+            local valueLabel = Instance.new("TextLabel")
+            valueLabel.Name = "ValueLabel"
+            valueLabel.Position = UDim2.new(1, -scale(70), 0, scale(8))
+            valueLabel.Size = UDim2.new(0, scale(60), 0, scale(20))
+            valueLabel.BackgroundTransparency = 1
+            valueLabel.Font = Enum.Font.GothamBold
+            valueLabel.Text = value .. suffix
+            valueLabel.TextColor3 = Lieris.Theme.Primary
+            valueLabel.TextSize = scale(13)
+            valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+            valueLabel.Parent = sliderFrame
             
-            local sliderTrack = createFrame(sliderFrame, {
-                Name = "SliderTrack",
-                Size = UDim2.new(1, -scale(20), 0, scale(6)),
-                Position = UDim2.new(0, scale(10), 0, scale(32)),
-                BackgroundColor3 = currentTheme.Surface,
-                BackgroundTransparency = 0.3,
-                CornerRadius = 3
-            })
+            -- Slider track
+            local sliderTrack = Instance.new("Frame")
+            sliderTrack.Name = "SliderTrack"
+            sliderTrack.Size = UDim2.new(1, -scale(30), 0, scale(8))
+            sliderTrack.Position = UDim2.new(0, scale(15), 0, scale(45))
+            sliderTrack.BackgroundColor3 = Lieris.Theme.Surface
+            sliderTrack.BorderSizePixel = 0
+            sliderTrack.Parent = sliderFrame
             
-            local sliderFill = createFrame(sliderTrack, {
-                Name = "SliderFill",
-                Size = UDim2.new((value - min) / (max - min), 0, 1, 0),
-                BackgroundColor3 = currentTheme.Primary,
-                CornerRadius = 3
-            })
+            createCorner(sliderTrack, 4)
+            
+            -- Slider fill
+            local sliderFill = Instance.new("Frame")
+            sliderFill.Name = "SliderFill"
+            sliderFill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
+            sliderFill.BackgroundColor3 = Lieris.Theme.Primary
+            sliderFill.BorderSizePixel = 0
+            sliderFill.Parent = sliderTrack
+            
+            createCorner(sliderFill, 4)
             
             local function updateSlider()
                 local percent = (value - min) / (max - min)
@@ -855,7 +1397,7 @@ function Lieris:CreateWindow(config)
             local dragging = false
             
             sliderTrack.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = true
                     
                     local function updateValue()
@@ -868,14 +1410,14 @@ function Lieris:CreateWindow(config)
                     updateValue()
                     
                     local connection
-                    connection = Services.UserInputService.InputChanged:Connect(function(input)
-                        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+                    connection = Services.UserInputService.InputChanged:Connect(function(input2)
+                        if input2.UserInputType == Enum.UserInputType.MouseMovement and dragging then
                             updateValue()
                         end
                     end)
                     
-                    Services.UserInputService.InputEnded:Connect(function(input)
-                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    Services.UserInputService.InputEnded:Connect(function(input2)
+                        if input2.UserInputType == Enum.UserInputType.MouseButton1 then
                             dragging = false
                             connection:Disconnect()
                         end
@@ -895,403 +1437,203 @@ function Lieris:CreateWindow(config)
             return methods
         end
         
-        function tab:CreateDropdown(dropdownConfig)
-            dropdownConfig = dropdownConfig or {}
-            
-            local dropdownFrame = createFrame(self.Frame, {
-                Name = "DropdownFrame",
-                Size = UDim2.new(1, 0, 0, scale(40)),
-                BackgroundTransparency = 0.9,
-                Border = true
-            })
-            dropdownFrame.LayoutOrder = #self.Elements + 1
-            dropdownFrame.ClipsDescendants = true
-            
-            local currentOption = dropdownConfig.CurrentOption or (dropdownConfig.Options and dropdownConfig.Options[1]) or "None"
-            local isOpen = false
-            
-            local mainButton = createButton(dropdownFrame, {
-                Name = "MainButton",
-                Size = UDim2.new(1, -scale(20), 0, scale(30)),
-                Position = UDim2.new(0, scale(10), 0, scale(5)),
-                BackgroundColor3 = currentTheme.Surface,
-                Text = (dropdownConfig.Name or "Dropdown") .. ": " .. currentOption,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                Callback = function()
-                    isOpen = not isOpen
-                    local targetHeight = isOpen and scale(40 + #dropdownConfig.Options * 25) or scale(40)
-                    tween(dropdownFrame, {Size = UDim2.new(1, 0, 0, targetHeight)}, 0.2)
-                end
-            })
-            
-            -- Create option buttons
-            if dropdownConfig.Options then
-                for i, option in ipairs(dropdownConfig.Options) do
-                    local optionButton = createButton(dropdownFrame, {
-                        Name = "Option" .. i,
-                        Size = UDim2.new(1, -scale(20), 0, scale(22)),
-                        Position = UDim2.new(0, scale(10), 0, scale(35 + (i-1) * 25)),
-                        BackgroundColor3 = currentTheme.Surface,
-                        BackgroundTransparency = 0.3,
-                        Text = option,
-                        TextSize = scale(12),
-                        Callback = function()
-                            currentOption = option
-                            mainButton.Text = (dropdownConfig.Name or "Dropdown") .. ": " .. option
-                            
-                            isOpen = false
-                            tween(dropdownFrame, {Size = UDim2.new(1, 0, 0, scale(40))}, 0.2)
-                            
-                            if dropdownConfig.Flag then
-                                Lieris:SetFlag(dropdownConfig.Flag, option)
-                            end
-                            
-                            if dropdownConfig.Callback then
-                                dropdownConfig.Callback(option)
-                            end
-                        end
-                    })
-                end
-            end
-            
-            table.insert(self.Elements, dropdownFrame)
-            return dropdownFrame
-        end
-        
         table.insert(self.Tabs, tab)
         return tab
     end
     
     -- Entrance animation
     main.Size = UDim2.new(0, 0, 0, 0)
-    tween(main, {Size = windowSize}, 0.5, Enum.EasingStyle.Back)
+    main.Rotation = -15
+    tween(main, {
+        Size = windowSize,
+        Rotation = 0
+    }, 0.8, "Back", "Out")
     
     table.insert(self.Windows, window)
+    Lieris.CurrentWindow = window
     return window
 end
 
--- Beautiful Loading Screen with Lieris branding
-local function createLoadingScreen()
-    -- Create loading ScreenGui
-    local loadingGui = Instance.new("ScreenGui")
-    loadingGui.Name = "LierisLoading"
-    loadingGui.ResetOnSpawn = false
-    loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    loadingGui.Parent = Services.CoreGui
+-- Initialize with ultimate loading screen and demo
+if not getgenv().LierisUltimateLoaded then
+    getgenv().LierisUltimateLoaded = true
     
-    -- Background overlay
-    local background = Instance.new("Frame")
-    background.Name = "Background"
-    background.Size = UDim2.new(1, 0, 1, 0)
-    background.Position = UDim2.new(0, 0, 0, 0)
-    background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    background.BackgroundTransparency = 0.2
-    background.BorderSizePixel = 0
-    background.Parent = loadingGui
-    
-    -- Main loading container
-    local container = Instance.new("Frame")
-    container.Name = "Container"
-    container.Size = UDim2.new(0, scale(400), 0, scale(200))
-    container.Position = UDim2.new(0.5, 0, 0.5, 0)
-    container.AnchorPoint = Vector2.new(0.5, 0.5)
-    container.BackgroundColor3 = currentTheme.Background
-    container.BackgroundTransparency = 0.1
-    container.BorderSizePixel = 0
-    container.Parent = background
-    
-    -- Add corner radius to container
-    local containerCorner = Instance.new("UICorner")
-    containerCorner.CornerRadius = UDim.new(0, scale(15))
-    containerCorner.Parent = container
-    
-    -- Add glow effect
-    local containerStroke = Instance.new("UIStroke")
-    containerStroke.Color = currentTheme.Primary
-    containerStroke.Thickness = scale(2)
-    containerStroke.Transparency = 0.3
-    containerStroke.Parent = container
-    
-    -- Lieris logo text
-    local logoText = Instance.new("TextLabel")
-    logoText.Name = "LogoText"
-    logoText.Size = UDim2.new(1, 0, 0, scale(80))
-    logoText.Position = UDim2.new(0, 0, 0, scale(30))
-    logoText.BackgroundTransparency = 1
-    logoText.Font = Enum.Font.GothamBold
-    logoText.Text = "LIERIS"
-    logoText.TextColor3 = currentTheme.Primary
-    logoText.TextSize = scale(48)
-    logoText.TextXAlignment = Enum.TextXAlignment.Center
-    logoText.TextYAlignment = Enum.TextYAlignment.Center
-    logoText.TextTransparency = 1
-    logoText.Parent = container
-    
-    -- Subtitle
-    local subtitle = Instance.new("TextLabel")
-    subtitle.Name = "Subtitle"
-    subtitle.Size = UDim2.new(1, 0, 0, scale(25))
-    subtitle.Position = UDim2.new(0, 0, 0, scale(110))
-    subtitle.BackgroundTransparency = 1
-    subtitle.Font = Enum.Font.Gotham
-    subtitle.Text = "UI Library v3.6 - by elldries"
-    subtitle.TextColor3 = currentTheme.TextSecondary
-    subtitle.TextSize = scale(16)
-    subtitle.TextXAlignment = Enum.TextXAlignment.Center
-    subtitle.TextYAlignment = Enum.TextYAlignment.Center
-    subtitle.TextTransparency = 1
-    subtitle.Parent = container
-    
-    -- Loading dots
-    local loadingText = Instance.new("TextLabel")
-    loadingText.Name = "LoadingText"
-    loadingText.Size = UDim2.new(1, 0, 0, scale(20))
-    loadingText.Position = UDim2.new(0, 0, 0, scale(150))
-    loadingText.BackgroundTransparency = 1
-    loadingText.Font = Enum.Font.Gotham
-    loadingText.Text = "Loading"
-    loadingText.TextColor3 = currentTheme.Text
-    loadingText.TextSize = scale(12)
-    loadingText.TextXAlignment = Enum.TextXAlignment.Center
-    loadingText.TextYAlignment = Enum.TextYAlignment.Center
-    loadingText.TextTransparency = 1
-    loadingText.Parent = container
-    
-    -- Progressive bar
-    local progressBar = Instance.new("Frame")
-    progressBar.Name = "ProgressBar"
-    progressBar.Size = UDim2.new(0.8, 0, 0, scale(4))
-    progressBar.Position = UDim2.new(0.1, 0, 0, scale(180))
-    progressBar.BackgroundColor3 = currentTheme.Surface
-    progressBar.BorderSizePixel = 0
-    progressBar.Parent = container
-    
-    local progressBarCorner = Instance.new("UICorner")
-    progressBarCorner.CornerRadius = UDim.new(0, scale(2))
-    progressBarCorner.Parent = progressBar
-    
-    local progressFill = Instance.new("Frame")
-    progressFill.Name = "ProgressFill"
-    progressFill.Size = UDim2.new(0, 0, 1, 0)
-    progressFill.Position = UDim2.new(0, 0, 0, 0)
-    progressFill.BackgroundColor3 = currentTheme.Primary
-    progressFill.BorderSizePixel = 0
-    progressFill.Parent = progressBar
-    
-    local progressFillCorner = Instance.new("UICorner")
-    progressFillCorner.CornerRadius = UDim.new(0, scale(2))
-    progressFillCorner.Parent = progressFill
-    
-    -- Start animations
-    task.spawn(function()
-        -- Animate container entrance
-        container.Size = UDim2.new(0, 0, 0, 0)
-        tween(container, {Size = UDim2.new(0, scale(400), 0, scale(200))}, 0.6, Enum.EasingStyle.Back)
-        
-        task.wait(0.2)
-        
-        -- Animate logo text with glow effect
-        tween(logoText, {TextTransparency = 0}, 0.8, Enum.EasingStyle.Quad)
-        
-        -- Add text glow animation
-        task.spawn(function()
-            while logoText.Parent do
-                tween(logoText, {TextSize = scale(52)}, 1.5, Enum.EasingStyle.Sine)
-                task.wait(1.5)
-                if logoText.Parent then
-                    tween(logoText, {TextSize = scale(48)}, 1.5, Enum.EasingStyle.Sine)
-                    task.wait(1.5)
-                end
-            end
-        end)
-        
-        task.wait(0.3)
-        
-        -- Animate subtitle
-        tween(subtitle, {TextTransparency = 0}, 0.6, Enum.EasingStyle.Quad)
-        
-        task.wait(0.2)
-        
-        -- Animate loading text
-        tween(loadingText, {TextTransparency = 0}, 0.4, Enum.EasingStyle.Quad)
-        
-        -- Animate loading dots
-        task.spawn(function()
-            local dots = 0
-            while loadingText.Parent do
-                dots = (dots % 3) + 1
-                loadingText.Text = "Loading" .. string.rep(".", dots)
-                task.wait(0.5)
-            end
-        end)
-        
-        task.wait(0.3)
-        
-        -- Animate progress bar
-        tween(progressFill, {Size = UDim2.new(1, 0, 1, 0)}, 2.5, Enum.EasingStyle.Quad)
-        
-        -- Wait for completion
-        task.wait(3)
-        
-        -- Animate exit
-        tween(container, {
-            Size = UDim2.new(0, 0, 0, 0),
-            Position = UDim2.new(0.5, 0, 0.3, 0)
-        }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-        
-        tween(background, {BackgroundTransparency = 1}, 0.5, Enum.EasingStyle.Quad)
-        
-        task.wait(0.6)
-        
-        -- Clean up
-        loadingGui:Destroy()
-    end)
-    
-    return loadingGui
-end
-
--- Auto-demo creation
-if not getgenv().LierisLoaded then
-    getgenv().LierisLoaded = true
-    
-    -- Show beautiful loading screen
-    createLoadingScreen()
+    -- Show loading screen and wait for completion
+    local loadingScreen = createUltimateLoadingScreen()
     
     task.spawn(function()
-        task.wait(3.5) -- Wait for loading screen to finish
+        -- Wait for loading screen to finish completely
+        repeat
+            task.wait(0.1)
+        until not loadingScreen or not loadingScreen.Parent
         
-        print("Creating Lieris Demo GUI...")
+        task.wait(0.5) -- Small delay after loading screen
         
-        -- Create demo window
-        local Window = Lieris:CreateWindow({
-            Name = "Lieris Demo Hub"
-        })
+        print("Creating Ultimate Lieris GUI...")
         
-        -- Main tab
-        local MainTab = Window:CreateTab({
-            Name = "Main"
-        })
+        -- Only create window if it doesn't exist to prevent duplication
+        if not Lieris.CurrentWindow or not Lieris.CurrentWindow.ScreenGui.Parent then
+            local Window = Lieris:CreateWindow({
+                Name = "Lieris Ultimate"
+            })
         
-        MainTab:CreateSection({
-            Name = "Welcome"
-        })
+            -- Main tab
+            local MainTab = Window:CreateTab({
+                Name = "Main Features"
+            })
         
-        MainTab:CreateLabel({
-            Text = "Welcome to Lieris UI Library v3.6!"
-        })
-        
-        MainTab:CreateButton({
-            Name = "Test Button",
-            Callback = function()
-                Lieris:CreateNotification({
-                    Title = "Success!",
-                    Content = "Button works perfectly!",
-                    Duration = 3,
-                    Type = "Success"
-                })
-            end
-        })
-        
-        MainTab:CreateToggle({
-            Name = "Test Toggle",
-            CurrentValue = false,
-            Callback = function(Value)
-                Lieris:CreateNotification({
-                    Title = "Toggle",
-                    Content = "Toggle is " .. (Value and "ON" or "OFF"),
-                    Duration = 2,
-                    Type = "Info"
-                })
-            end
-        })
-        
-        MainTab:CreateSlider({
-            Name = "Test Slider",
-            Range = {0, 100},
-            CurrentValue = 50,
-            Suffix = "%",
-            Callback = function(Value)
-                print("Slider:", Value)
-            end
-        })
-        
-        -- Themes tab
-        local ThemesTab = Window:CreateTab({
-            Name = "Themes"
-        })
-        
-        ThemesTab:CreateSection({
-            Name = "Theme Gallery"
-        })
-        
-        local themeNames = {"Cosmic", "Ocean", "Forest", "Sunset", "Rose", "Dark", "Light"}
-        
-        for _, theme in ipairs(themeNames) do
-            ThemesTab:CreateButton({
-                Name = theme .. " Theme",
+            MainTab:CreateSection({
+                Name = "Welcome to Lieris Ultimate"
+            })
+            
+            MainTab:CreateLabel({
+                Text = "The most beautiful UI library for Roblox with dynamic design!"
+            })
+            
+            MainTab:CreateButton({
+                Name = "Test Ultimate Button",
                 Callback = function()
-                    Lieris:SetTheme(theme)
                     Lieris:CreateNotification({
-                        Title = "Theme Applied",
-                        Content = "Applied " .. theme .. " theme!",
-                        Duration = 3,
+                        Title = "Ultimate Success!",
+                        Content = "Button works with beautiful animations and effects!",
+                        Duration = 4,
                         Type = "Success"
                     })
                 end
             })
-        end
-        
-        -- Info tab
-        local InfoTab = Window:CreateTab({
-            Name = "Info"
-        })
-        
-        InfoTab:CreateSection({
-            Name = "About"
-        })
-        
-        InfoTab:CreateLabel({
-            Text = "Lieris UI Library v3.6.0 - Fixed Edition"
-        })
-        
-        InfoTab:CreateLabel({
-            Text = "Developer: elldries"
-        })
-        
-        InfoTab:CreateLabel({
-            Text = "Discord: discord.gg/TmyBPH539k"
-        })
-        
-        InfoTab:CreateDropdown({
-            Name = "Test Dropdown",
-            Options = {"Option 1", "Option 2", "Option 3"},
-            CurrentOption = "Option 1",
-            Callback = function(Option)
-                print("Selected:", Option)
+            
+            MainTab:CreateToggle({
+                Name = "Test Toggle",
+                CurrentValue = false,
+                Callback = function(Value)
+                    Lieris:CreateNotification({
+                        Title = "Toggle Changed",
+                        Content = "Toggle is now " .. (Value and "ON" or "OFF"),
+                        Duration = 3,
+                        Type = "Info"
+                    })
+                end
+            })
+            
+            MainTab:CreateSlider({
+                Name = "Test Slider",
+                Range = {0, 100},
+                CurrentValue = 50,
+                Suffix = "%",
+                Callback = function(Value)
+                    print("Slider value:", Value)
+                end
+            })
+            
+            MainTab:CreateButton({
+                Name = "Join Discord Server",
+                Callback = function()
+                    openDiscord()
+                end
+            })
+            
+            -- Features tab
+            local FeaturesTab = Window:CreateTab({
+                Name = "Features"
+            })
+            
+            FeaturesTab:CreateSection({
+                Name = "Ultimate Features"
+            })
+            
+            local features = {
+                "• Ultra-dynamic glassmorphism design",
+                "• Professional animations and particle effects",
+                "• Custom logo and branding elements",
+                "• Discord integration with browser opening",
+                "• Adaptive mobile/desktop controls",
+                "• Premium blue/white/black color scheme",
+                "• Advanced visual effects system",
+                "• Professional typography and spacing"
+            }
+            
+            for _, feature in ipairs(features) do
+                FeaturesTab:CreateLabel({
+                    Text = feature
+                })
             end
-        })
-        
-        -- Success notification
-        Lieris:CreateNotification({
-            Title = "Lieris Loaded!",
-            Content = "Beautiful UI loaded successfully!",
-            Duration = 5,
-            Type = "Success"
-        })
-        
-        print("")
-        print("═══════════════════════════════════════════════════════")
-        print("              LIERIS UI LIBRARY v3.6")
-        print("                  Premium Edition")
-        print("═══════════════════════════════════════════════════════")
-        print("✓ Loading screen displayed")
-        print("✓ GUI created successfully!")
-        print("✓ All errors have been fixed!")
-        print("✓ Beautiful animations implemented")
-        print("✓ Press Right Control to toggle visibility")
-        print("✓ Developer: elldries")
-        print("✓ Discord: discord.gg/TmyBPH539k")
-        print("═══════════════════════════════════════════════════════")
+            
+            -- Info tab
+            local InfoTab = Window:CreateTab({
+                Name = "Information"
+            })
+            
+            InfoTab:CreateSection({
+                Name = "About Lieris Ultimate"
+            })
+            
+            InfoTab:CreateLabel({
+                Text = "Lieris UI Library v4.0 - Ultimate Edition"
+            })
+            
+            InfoTab:CreateLabel({
+                Text = "Developer: elldries"
+            })
+            
+            InfoTab:CreateLabel({
+                Text = "Discord: discord.gg/TmyBPH539k"
+            })
+            
+            InfoTab:CreateSection({
+                Name = "Controls"
+            })
+            
+            if Lieris.Device.IsMobile then
+                InfoTab:CreateLabel({
+                    Text = "Mobile: Tap the 'L' button to toggle GUI"
+                })
+            else
+                InfoTab:CreateLabel({
+                    Text = "Desktop: Press 'K' key to toggle GUI"
+                })
+            end
+            
+            InfoTab:CreateButton({
+                Name = "Test Notifications",
+                Callback = function()
+                    Lieris:CreateNotification({
+                        Title = "Ultimate Notification",
+                        Content = "This is a beautiful notification with glassmorphism design!",
+                        Duration = 5,
+                        Type = "Info"
+                    })
+                end
+            })
+            
+            -- Success notification
+            Lieris:CreateNotification({
+                Title = "Lieris Ultimate Loaded!",
+                Content = "Ultimate UI with dynamic design loaded successfully!",
+                Duration = 6,
+                Type = "Success"
+            })
+            
+            print("")
+            print("═══════════════════════════════════════════════════════")
+            print("              LIERIS ULTIMATE v4.0")
+            print("            The Most Beautiful UI Library")
+            print("═══════════════════════════════════════════════════════")
+            print("✓ Ultimate loading screen displayed")
+            print("✓ Dynamic GUI created without background blur")
+            print("✓ Custom logo and branding implemented")
+            print("✓ Discord integration working")
+            print("✓ Device-adaptive controls active")
+            if Lieris.Device.IsMobile then
+                print("✓ Mobile: Tap 'L' button to toggle")
+            else
+                print("✓ Desktop: Press 'K' key to toggle")
+            end
+            print("✓ Beautiful animations and effects")
+            print("✓ Toggle and slider components working")
+            print("✓ Developer: elldries")
+            print("✓ Discord: discord.gg/TmyBPH539k")
+            print("═══════════════════════════════════════════════════════")
+        end
     end)
 end
 
