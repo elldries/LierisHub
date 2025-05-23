@@ -791,7 +791,7 @@ function Lieris:CreateWindow(config)
         NumberSequenceKeypoint.new(0.4, 0.06),
         NumberSequenceKeypoint.new(0.7, 0.04),
         NumberSequenceKeypoint.new(1, 0.08)
-    }, 160)  -- Увеличенный угол для более динамичного эффекта
+    }, 160)
     
     -- СЛОЙ СИЯНИЯ ✨
     local glowOverlay = Instance.new("Frame")
