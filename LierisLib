@@ -486,10 +486,10 @@ local function createMobileToggle()
     -- Animate glow
     task.spawn(function()
         while glowFrame.Parent do
-            tween(glowFrame, {BackgroundTransparency = 0.9}, 1.5, "Sine", "InOut")
+            tween(glowFrame, {BackgroundTransparency = 0.9}, 1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
             task.wait(1.5)
             if glowFrame.Parent then
-                tween(glowFrame, {BackgroundTransparency = 0.6}, 1.5, "Sine", "InOut")
+                tween(glowFrame, {BackgroundTransparency = 0.6}, 1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
                 task.wait(1.5)
             end
         end
@@ -640,7 +640,7 @@ local function createUltimateLoadingScreen()
         -- Spinning logo animation
         task.spawn(function()
             while logo.Parent do
-                tween(logoFrame, {Rotation = 360}, 4, "Linear", "InOut")
+                tween(logoFrame, {Rotation = 360}, 4, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
                 task.wait(4)
                 if logoFrame.Parent then
                     logoFrame.Rotation = 0
@@ -817,7 +817,7 @@ function Lieris:CreateWindow(config)
     -- Spinning logo animation
     task.spawn(function()
         while logoFrame.Parent do
-            tween(logoFrame, {Rotation = 360}, 8, "Linear", "InOut")
+            tween(logoFrame, {Rotation = 360}, 8, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
             task.wait(8)
             if logoFrame.Parent then
                 logoFrame.Rotation = 0
@@ -904,7 +904,7 @@ function Lieris:CreateWindow(config)
             UDim2.new(windowSize.X.Scale, windowSize.X.Offset, 0, scale(70)) or 
             windowSize
         
-        tween(main, {Size = targetSize}, 0.5, "Back", "Out")
+        tween(main, {Size = targetSize}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         createParticles(minimizeBtn, 4, Lieris.Theme.Warning, 2)
     end)
     
