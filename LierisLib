@@ -543,16 +543,19 @@ local function createUltimateLoadingScreen()
     background.BorderSizePixel = 0
     background.Parent = loadingGui
     
-    -- Animated gradient background
+    -- ПОТРЯСАЮЩИЙ градиент загрузки 🌈✨
     createGradient(background, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Lieris.Theme.Background),
-        ColorSequenceKeypoint.new(0.5, Lieris.Theme.Primary),
-        ColorSequenceKeypoint.new(1, Lieris.Theme.Background)
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(5, 10, 30)),        -- Глубокий темно-синий
+        ColorSequenceKeypoint.new(0.2, Color3.fromRGB(20, 30, 60)),     -- Темно-синий
+        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(40, 60, 120)),    -- Средне-синий
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(60, 120, 200)),   -- Яркий синий
+        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(30, 50, 90)),     -- Возврат к синему
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 15, 35))        -- Завершение темным
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.1),
-        NumberSequenceKeypoint.new(0.5, 0.3),
-        NumberSequenceKeypoint.new(1, 0.1)
-    }, 45)
+        ColorSequenceKeypoint.new(0, 0),
+        ColorSequenceKeypoint.new(0.5, 0.1),
+        ColorSequenceKeypoint.new(1, 0.05)
+    }, 135)  -- Диагональный градиент
     
     -- Main container
     local container = Instance.new("Frame")
@@ -773,20 +776,22 @@ function Lieris:CreateWindow(config)
     -- Remove blur effect to prevent background blurring
     -- blur effect removed for better visibility
     
-    -- ПОТРЯСАЮЩИЙ СИНИЙ-ГОЛУБОЙ градиент! 🌊💙
+    -- НЕВЕРОЯТНЫЙ ГЛАВНЫЙ ГРАДИЕНТ! 🌟💎
     createGradient(main, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(59, 130, 246)),     -- Яркий синий
-        ColorSequenceKeypoint.new(0.2, Color3.fromRGB(14, 165, 233)),   -- Небесно-голубой
-        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(56, 189, 248)),   -- Светло-голубой
-        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(99, 102, 241)),   -- Фиолетово-синий
-        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(14, 165, 233)),   -- Возврат к голубому
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 45))        -- Темная база
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 20, 40)),       -- Глубокий индиго
+        ColorSequenceKeypoint.new(0.15, Color3.fromRGB(30, 45, 80)),    -- Темно-синий
+        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(50, 80, 140)),    -- Синий
+        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(70, 120, 200)),  -- Яркий синий
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(90, 150, 220)),   -- Светло-синий
+        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(60, 100, 180)),  -- Средний синий
+        ColorSequenceKeypoint.new(0.9, Color3.fromRGB(35, 55, 100)),    -- Возврат к темному
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 25, 50))        -- Финальный темный
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.02),
-        NumberSequenceKeypoint.new(0.3, 0.05),
-        NumberSequenceKeypoint.new(0.7, 0.08),
-        NumberSequenceKeypoint.new(1, 0.12)
-    }, 135)
+        ColorSequenceKeypoint.new(0, 0.02),
+        ColorSequenceKeypoint.new(0.4, 0.06),
+        ColorSequenceKeypoint.new(0.7, 0.04),
+        ColorSequenceKeypoint.new(1, 0.08)
+    }, 160)  -- Увеличенный угол для более динамичного эффекта
     
     -- СЛОЙ СИЯНИЯ ✨
     local glowOverlay = Instance.new("Frame")
