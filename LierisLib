@@ -66,10 +66,17 @@ local Lieris = {
         Border = Color3.fromRGB(100, 116, 139),
         Glow = Color3.fromRGB(59, 130, 246),
         
-        -- Настройки прозрачности (0 = непрозрачный)
+        -- Настройки прозрачности (0 = непрозрачный) для всех элементов
         BackgroundTransparency = 0,
         SurfaceTransparency = 0,
-        CardTransparency = 0
+        CardTransparency = 0,
+        ElementTransparency = 0,
+        BorderTransparency = 0,
+        NotificationTransparency = 0,
+        OverlayTransparency = 0,
+        
+        -- Задержка появления GUI (в секундах)
+        InterfaceDelay = 0.5
     },
     
     Device = {
@@ -178,7 +185,7 @@ local function createStroke(parent, color, thickness, transparency)
     local stroke = Instance.new("UIStroke")
     stroke.Color = color or Lieris.Theme.Border
     stroke.Thickness = scale(thickness or 1)
-    stroke.Transparency = transparency or 0.6
+    stroke.Transparency = transparency or Lieris.Theme.BorderTransparency or 0
     stroke.Parent = parent
     return stroke
 end
@@ -311,7 +318,7 @@ function Lieris:CreateNotification(config)
     notification.Size = UDim2.new(1, 0, 0, scale(90))
     notification.Position = UDim2.new(1, 0, 0, 0)
     notification.BackgroundColor3 = self.Theme.Surface
-    notification.BackgroundTransparency = 0.05
+    notification.BackgroundTransparency = self.Theme.NotificationTransparency or 0
     notification.BorderSizePixel = 0
     notification.Parent = self.NotificationContainer
     
@@ -348,7 +355,7 @@ function Lieris:CreateNotification(config)
     iconFrame.Size = UDim2.new(0, scale(40), 0, scale(40))
     iconFrame.Position = UDim2.new(0, scale(15), 0, scale(25))
     iconFrame.BackgroundColor3 = notifColor
-    iconFrame.BackgroundTransparency = 0.1
+    iconFrame.BackgroundTransparency = self.Theme.ElementTransparency or 0
     iconFrame.BorderSizePixel = 0
     iconFrame.Parent = notification
     
@@ -1006,58 +1013,73 @@ function Lieris:CreateWindow(config)
         end
     end)
     
-    -- Keybind system (K for Desktop, touch button for Mobile)
+    -- Улучшенная обработка клавиш (K для открытия/закрытия интерфейса)
     if not Lieris.Device.IsMobile then
         Services.UserInputService.InputBegan:Connect(function(input, processed)
-            if not processed and input.KeyCode == Enum.KeyCode.K then
+            -- Обрабатываем нажатие клавиши K, даже если она уже обработана другим обработчиком
+            if input.KeyCode == Enum.KeyCode.K then
+                print("K key pressed - toggling interface")
                 window:Toggle()
             end
         end)
+        
+        -- Выводим сообщение о том, как использовать клавишу K
+        print("Используйте клавишу 'K' для открытия/закрытия интерфейса")
     end
     
     -- Window methods
     function window:Hide()
-        -- Меняем поведение - показываем только небольшую панельку слева
+        -- Полностью скрываем интерфейс
         tween(main, {
-            -- Сжимаем интерфейс только по горизонтали, оставляя вертикальный размер
-            Size = UDim2.new(0, scale(60), windowSize.Y.Scale, windowSize.Y.Offset),
-            -- Перемещаем к левому краю экрана, оставляя панельку
-            Position = UDim2.new(0, scale(30), 0.5, 0),
+            -- Сжимаем до нуля
+            Size = UDim2.new(0, 0, 0, 0),
+            -- Перемещаем за пределы экрана
+            Position = UDim2.new(2, 0, 0.5, 0),
             -- Отключаем вращение
             Rotation = 0
-        }, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        }, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In, function()
+            -- После завершения анимации делаем GUI полностью невидимым
+            screenGui.Enabled = false
+        end)
         
-        -- Скрываем содержимое окна, оставляя только основную панель
+        -- Скрываем всё содержимое окна
         if tabHolder then
             tabHolder.Visible = false
         end
         
-        -- Меняем цвет основной панели, чтобы было видно, что она свернута
-        local bgColor = mainContainer and mainContainer.BackgroundColor3
         if mainContainer then
             tween(mainContainer, {
-                BackgroundColor3 = Lieris.Theme.Primary
-            }, 0.3)
+                BackgroundTransparency = 1 -- Делаем контейнер прозрачным
+            }, 0.2)
         end
     end
     
     function window:Show()
+        -- Делаем GUI видимым
         screenGui.Enabled = true
+        
+        -- Задержка перед появлением (для плавности)
+        task.wait(Lieris.Theme.InterfaceDelay or 0.1)
+        
+        -- Сначала делаем окно маленьким и не видимым (для анимации)
+        main.Size = UDim2.new(0, 0, 0, 0)
+        main.Position = UDim2.new(0.5, 0, 0.5, 0)
         
         -- Плавно возвращаем окно к полному размеру без вращения
         tween(main, {
             Size = windowSize,
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Rotation = 0
-        }, 0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         
         -- Показываем содержимое окна
         if tabHolder then
             tabHolder.Visible = true
         end
         
-        -- Возвращаем исходный цвет
+        -- Возвращаем исходный цвет и прозрачность
         if mainContainer then
+            mainContainer.BackgroundTransparency = Lieris.Theme.SurfaceTransparency or 0
             tween(mainContainer, {
                 BackgroundColor3 = Lieris.Theme.Surface
             }, 0.3)
