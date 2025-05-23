@@ -787,10 +787,10 @@ function Lieris:CreateWindow(config)
         ColorSequenceKeypoint.new(0.9, Color3.fromRGB(35, 55, 100)),    -- Возврат к темному
         ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 25, 50))        -- Финальный темный
     }, NumberSequence.new{
-        ColorSequenceKeypoint.new(0, 0.02),
-        ColorSequenceKeypoint.new(0.4, 0.06),
-        ColorSequenceKeypoint.new(0.7, 0.04),
-        ColorSequenceKeypoint.new(1, 0.08)
+        NumberSequenceKeypoint.new(0, 0.02),
+        NumberSequenceKeypoint.new(0.4, 0.06),
+        NumberSequenceKeypoint.new(0.7, 0.04),
+        NumberSequenceKeypoint.new(1, 0.08)
     }, 160)  -- Увеличенный угол для более динамичного эффекта
     
     -- СЛОЙ СИЯНИЯ ✨
