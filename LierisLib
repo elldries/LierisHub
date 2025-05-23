@@ -866,8 +866,8 @@ function Lieris:CreateWindow(config)
     title.TextSize = scale(20)
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.TextYAlignment = Enum.TextYAlignment.Center
-    title.TextStrokeTransparency = 0.8  -- Тень для лучшей читаемости
-    title.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextStrokeTransparency = 1  -- Убираем обводку текста
+    title.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     title.Parent = titleBar
     
     -- СТИЛЬНЫЙ ПОДЗАГОЛОВОК
@@ -882,8 +882,8 @@ function Lieris:CreateWindow(config)
     subtitle.TextSize = scale(12)
     subtitle.TextXAlignment = Enum.TextXAlignment.Left
     subtitle.TextYAlignment = Enum.TextYAlignment.Center
-    subtitle.TextStrokeTransparency = 0.9
-    subtitle.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
+    subtitle.TextStrokeTransparency = 1  -- Убираем обводку подзаголовка
+    subtitle.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     subtitle.Parent = titleBar
     
     -- Control buttons
