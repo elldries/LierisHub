@@ -31,6 +31,8 @@ local Services = setmetatable({}, {
     end
 })
 
+-- Essential Roblox types - removed local redefinition
+
 -- Main Lieris Library
 local Lieris = {
     Version = "4.0.0",
@@ -312,13 +314,13 @@ function Lieris:CreateNotification(config)
     }
     local notifColor = colors[config.Type] or self.Theme.Primary
     
-    -- Create notification
+    -- Create notification with solid background
     local notification = Instance.new("Frame")
     notification.Name = "Notification"
     notification.Size = UDim2.new(1, 0, 0, scale(90))
     notification.Position = UDim2.new(1, 0, 0, 0)
     notification.BackgroundColor3 = self.Theme.Surface
-    notification.BackgroundTransparency = self.Theme.NotificationTransparency or 0
+    notification.BackgroundTransparency = 0.05  -- Почти непрозрачный фон
     notification.BorderSizePixel = 0
     notification.Parent = self.NotificationContainer
     
@@ -328,13 +330,14 @@ function Lieris:CreateNotification(config)
     -- Notification styling without blur
     -- blur removed for better performance
     
-    -- Gradient overlay
+    -- Enhanced solid gradient overlay for better visibility
     createGradient(notification, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, self.Theme.Primary),
-        ColorSequenceKeypoint.new(1, self.Theme.Secondary)
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 35, 50)),      -- Темно-синий
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(45, 55, 75)),    -- Средний синий  
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 30, 45))       -- Глубокий синий
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.95),
-        NumberSequenceKeypoint.new(1, 0.98)
+        NumberSequenceKeypoint.new(0, 0.1),  -- Почти непрозрачный
+        NumberSequenceKeypoint.new(1, 0.2)   -- Минимальная прозрачность
     }, 45)
     
     -- Status indicator
@@ -349,13 +352,13 @@ function Lieris:CreateNotification(config)
     statusCorner.CornerRadius = UDim.new(0, scale(2))
     statusCorner.Parent = statusBar
     
-    -- Icon
+    -- Icon with solid background
     local iconFrame = Instance.new("Frame")
     iconFrame.Name = "IconFrame"
     iconFrame.Size = UDim2.new(0, scale(40), 0, scale(40))
     iconFrame.Position = UDim2.new(0, scale(15), 0, scale(25))
     iconFrame.BackgroundColor3 = notifColor
-    iconFrame.BackgroundTransparency = self.Theme.ElementTransparency or 0
+    iconFrame.BackgroundTransparency = 0.1  -- Почти непрозрачная иконка
     iconFrame.BorderSizePixel = 0
     iconFrame.Parent = notification
     
@@ -366,7 +369,7 @@ function Lieris:CreateNotification(config)
     icon.Size = UDim2.new(1, 0, 1, 0)
     icon.BackgroundTransparency = 1
     icon.Font = Enum.Font.GothamBold
-    icon.TextColor3 = notifColor
+    icon.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Белый цвет для лучшей видимости
     icon.TextSize = scale(20)
     icon.TextXAlignment = Enum.TextXAlignment.Center
     icon.TextYAlignment = Enum.TextYAlignment.Center
@@ -381,7 +384,7 @@ function Lieris:CreateNotification(config)
     }
     icon.Text = icons[config.Type] or "•"
     
-    -- Title
+    -- Title with enhanced visibility
     local title = Instance.new("TextLabel")
     title.Name = "Title"
     title.Position = UDim2.new(0, scale(65), 0, scale(15))
@@ -389,13 +392,15 @@ function Lieris:CreateNotification(config)
     title.BackgroundTransparency = 1
     title.Font = Enum.Font.GothamBold
     title.Text = config.Title or "Notification"
-    title.TextColor3 = self.Theme.Text
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Белый текст для контраста
     title.TextSize = scale(16)
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.TextYAlignment = Enum.TextYAlignment.Center
+    title.TextStrokeTransparency = 0.8  -- Тень для лучшей читаемости
+    title.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     title.Parent = notification
     
-    -- Content
+    -- Content with enhanced visibility
     local content = Instance.new("TextLabel")
     content.Name = "Content"
     content.Position = UDim2.new(0, scale(65), 0, scale(40))
@@ -403,11 +408,13 @@ function Lieris:CreateNotification(config)
     content.BackgroundTransparency = 1
     content.Font = Enum.Font.Gotham
     content.Text = config.Content or "Notification content"
-    content.TextColor3 = self.Theme.TextSecondary
+    content.TextColor3 = Color3.fromRGB(220, 220, 220)  -- Светло-серый для контраста
     content.TextSize = scale(13)
     content.TextXAlignment = Enum.TextXAlignment.Left
     content.TextYAlignment = Enum.TextYAlignment.Top
     content.TextWrapped = true
+    content.TextStrokeTransparency = 0.9  -- Легкая тень
+    content.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     content.Parent = notification
     
     -- Close button
