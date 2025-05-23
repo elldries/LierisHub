@@ -926,16 +926,8 @@ function Lieris:CreateWindow(config)
     discordBtn.Text = "Discord"  -- Полноценная Discord кнопка
     discordBtn.TextSize = scale(12)  -- Меньший размер текста
     
-    -- Красивый синий градиент для Discord кнопки
-    createGradient(discordBtn, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(59, 130, 246)),     -- Яркий синий
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(37, 99, 235)),    -- Средний синий
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(29, 78, 216))       -- Темный синий
-    }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.05),
-        NumberSequenceKeypoint.new(1, 0.15)
-    }, 45)
-    discordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Белый текст!
+    -- Убираем градиент у Discord кнопки
+    discordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- БЕЛЫЙ ТЕКСТ
     discordBtn.TextSize = scale(12)  -- Меньший размер для широкой кнопки
     discordBtn.Parent = controlsFrame
     
@@ -965,15 +957,7 @@ function Lieris:CreateWindow(config)
     
     createCorner(closeBtn, 12)
     createStroke(closeBtn, Color3.fromRGB(153, 27, 27), 1, 0.6)  -- Тонкая красная граница
-    -- Красивый красный градиент для кнопки закрытия
-    createGradient(closeBtn, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(239, 68, 68)),      -- Яркий красный
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(220, 38, 38)),    -- Средний красный
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(185, 28, 28))       -- Темный красный
-    }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.05),
-        NumberSequenceKeypoint.new(1, 0.2)
-    }, 45)
+    -- Убираем градиент у кнопки закрытия
     
     closeBtn.MouseButton1Click:Connect(function()
         window:Hide()
