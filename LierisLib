@@ -801,14 +801,16 @@ function Lieris:CreateWindow(config)
     createCorner(glowOverlay, 20)
     createGradient(glowOverlay, ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(56, 189, 248)),     -- Яркий голубой
-        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(14, 165, 233)),   -- Небесно-голубой  
-        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(59, 130, 246)),   -- Синий
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(99, 102, 241))      -- Глубокий синий
+        ColorSequenceKeypoint.new(0.2, Color3.fromRGB(14, 165, 233)),   -- Небесно-голубой  
+        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(139, 92, 246)),   -- Фиолетовый
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(236, 72, 153)),   -- Розовый
+        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(251, 191, 36)),   -- Золотой
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(59, 130, 246))      -- Возврат к синему
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.7),
-        NumberSequenceKeypoint.new(0.5, 0.8),
-        NumberSequenceKeypoint.new(1, 0.9)
-    }, 45)
+        NumberSequenceKeypoint.new(0, 0.6),
+        NumberSequenceKeypoint.new(0.5, 0.7),
+        NumberSequenceKeypoint.new(1, 0.8)
+    }, 90)  -- Прямой вертикальный градиент для максимального эффекта
     
     -- Ultimate title bar
     local titleBar = Instance.new("Frame")
@@ -859,14 +861,16 @@ function Lieris:CreateWindow(config)
     logoText.TextYAlignment = Enum.TextYAlignment.Center
     logoText.Parent = logoFrame
     
-    -- Добавляем градиент к логотипу
+    -- ВОЛШЕБНЫЙ градиент логотипа ✨
     createGradient(logoFrame, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(59, 130, 246)),     -- Синий
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(56, 189, 248)),     -- Яркий голубой
+        ColorSequenceKeypoint.new(0.25, Color3.fromRGB(59, 130, 246)),  -- Синий
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(139, 92, 246)),   -- Фиолетовый
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))      -- Белый цвет!
+        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(236, 72, 153)),  -- Розовый
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(251, 191, 36))      -- Золотой
     }, NumberSequence.new{
         NumberSequenceKeypoint.new(0, 0.1),
-        NumberSequenceKeypoint.new(1, 0.3)
+        NumberSequenceKeypoint.new(1, 0.2)
     }, 45)
     
     -- Spinning logo animation
