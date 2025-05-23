@@ -1,1 +1,2509 @@
-a
+--[[
+    ═══════════════════════════════════════════════════════════════════════════════════
+                                                                                       
+                             LIERIS UI LIBRARY v3.0                                   
+                        Next-Generation Roblox Interface Suite                        
+                           Better than Rayfield in every way                          
+                                                                                       
+       Developer: elldries                                                            
+       Discord: https://discord.gg/TmyBPH539k                                        
+       Based on Rayfield but significantly improved                                   
+                                                                                       
+    ═══════════════════════════════════════════════════════════════════════════════════
+    
+    REVOLUTIONARY FEATURES:
+    • Glass morphism design with blur effects
+    • Advanced device adaptation (PC/Tablet/Mobile/VR)
+    • 8+ stunning themes with smooth transitions
+    • Premium animations and sound effects
+    • Real-time performance optimization
+    • Advanced security & anti-detection
+    • Smart caching and memory management
+    
+    PERFORMANCE OPTIMIZED:
+    • 60+ FPS smooth animations
+    • Memory efficient rendering
+    • Async loading for better UX
+    • Smart resource management
+    
+    Better than Rayfield with modern design!
+]]
+
+-- Enhanced Service Management System
+local ServiceManager = {}
+ServiceManager.Cache = {}
+ServiceManager.Protected = {}
+
+function ServiceManager:Get(serviceName)
+    if self.Cache[serviceName] then
+        return self.Cache[serviceName]
+    end
+    
+    local service = game:GetService(serviceName)
+    
+    -- Enhanced protection for exploit compatibility
+    if cloneref then
+        service = cloneref(service)
+    end
+    
+    -- Additional security layers for key services
+    if syn and syn.protect_gui and (serviceName == "CoreGui" or serviceName == "Players") then
+        self.Protected[serviceName] = service
+    end
+    
+    self.Cache[serviceName] = service
+    return service
+end
+
+-- Core Roblox Services
+local TweenService = ServiceManager:Get("TweenService")
+local CoreGui = ServiceManager:Get("CoreGui")
+local UserInputService = ServiceManager:Get("UserInputService")
+local RunService = ServiceManager:Get("RunService")
+local Players = ServiceManager:Get("Players")
+local HttpService = ServiceManager:Get("HttpService")
+local TextService = ServiceManager:Get("TextService")
+local SoundService = ServiceManager:Get("SoundService")
+local GuiService = ServiceManager:Get("GuiService")
+local Lighting = ServiceManager:Get("Lighting")
+local Workspace = ServiceManager:Get("Workspace")
+local StarterGui = ServiceManager:Get("StarterGui")
+
+-- Main Lieris Library Object
+local Lieris = {
+    Version = "3.0.0",
+    Release = "Build 3.000",
+    Developer = "elldries", 
+    Discord = "https://discord.gg/TmyBPH539k",
+    
+    -- Core Systems
+    Windows = {},
+    Themes = {},
+    Flags = {},
+    Notifications = {},
+    Elements = {},
+    
+    -- Performance Monitoring
+    Performance = {
+        AnimationsActive = 0,
+        ElementsRendered = 0,
+        MemoryUsage = 0,
+        FrameTime = {},
+        LastUpdate = tick()
+    },
+    
+    -- Internal State
+    Initialized = false,
+    CurrentTheme = nil,
+    NotificationContainer = nil
+}
+
+-- Device Detection and Adaptation System
+local Device = {
+    Type = "Desktop",
+    Platform = "Windows", 
+    TouchEnabled = false,
+    VREnabled = false,
+    ScreenSize = Vector2.new(1920, 1080),
+    SafeArea = Rect.new(0, 0, 1920, 1080),
+    DPI = 96,
+    AspectRatio = 16/9
+}
+
+local function detectDevice()
+    local camera = Workspace.CurrentCamera
+    local userInput = UserInputService
+    
+    -- Get basic device information
+    Device.ScreenSize = camera.ViewportSize
+    Device.TouchEnabled = userInput.TouchEnabled
+    Device.VREnabled = userInput.VREnabled
+    Device.AspectRatio = Device.ScreenSize.X / Device.ScreenSize.Y
+    
+    -- Determine device type based on screen size and input
+    if Device.VREnabled then
+        Device.Type = "VR"
+        Device.Platform = "VR"
+    elseif Device.TouchEnabled then
+        if Device.ScreenSize.X <= 768 then
+            Device.Type = "Mobile"
+            Device.Platform = userInput.GamepadEnabled and "Console" or "Mobile"
+        elseif Device.ScreenSize.X <= 1024 then
+            Device.Type = "Tablet"
+            Device.Platform = "Tablet"
+        else
+            Device.Type = "Desktop"
+            Device.Platform = userInput.GamepadEnabled and "Console" or "Desktop"
+        end
+    else
+        Device.Type = "Desktop"
+        Device.Platform = "Desktop"
+    end
+    
+    -- Calculate safe area (important for mobile devices with notches)
+    local safeInsets = GuiService:GetGuiInset()
+    Device.SafeArea = Rect.new(
+        safeInsets.X,
+        safeInsets.Y,
+        Device.ScreenSize.X - safeInsets.X,
+        Device.ScreenSize.Y - safeInsets.Y
+    )
+    
+    -- Estimate DPI for scaling calculations
+    Device.DPI = math.max(96, Device.ScreenSize.X / 20)
+    
+    print("Device Detected:", Device.Type, "|", Device.Platform, "|", Device.ScreenSize.X.."x"..Device.ScreenSize.Y)
+end
+
+-- Advanced Scaling System for Device Adaptation
+local function getDeviceScale()
+    local baseScale = 1.0
+    
+    -- Device-specific scaling factors
+    if Device.Type == "Mobile" then
+        baseScale = 1.4
+    elseif Device.Type == "Tablet" then
+        baseScale = 1.2
+    elseif Device.Type == "VR" then
+        baseScale = 1.6
+    else
+        baseScale = 1.0
+    end
+    
+    -- DPI-based scaling adjustment
+    local dpiScale = math.max(0.8, math.min(2.0, Device.DPI / 96))
+    
+    return baseScale * dpiScale
+end
+
+local function scaleUDim2(udim2)
+    local scale = getDeviceScale()
+    return UDim2.new(udim2.X.Scale, udim2.X.Offset * scale, udim2.Y.Scale, udim2.Y.Offset * scale)
+end
+
+local function scaleNumber(number)
+    return number * getDeviceScale()
+end
+
+-- Comprehensive Theme System
+local Themes = {
+    Default = {
+        Name = "Cosmic Blue",
+        Description = "Modern blue theme with cosmic vibes",
+        Colors = {
+            Primary = Color3.fromRGB(88, 101, 242),
+            Secondary = Color3.fromRGB(118, 131, 255),
+            Accent = Color3.fromRGB(148, 161, 255),
+            
+            Background = Color3.fromRGB(17, 24, 39),
+            Surface = Color3.fromRGB(31, 41, 55),
+            Card = Color3.fromRGB(55, 65, 81),
+            Overlay = Color3.fromRGB(75, 85, 99),
+            
+            Text = Color3.fromRGB(248, 250, 252),
+            TextSecondary = Color3.fromRGB(156, 163, 175),
+            TextDisabled = Color3.fromRGB(107, 114, 128),
+            
+            Success = Color3.fromRGB(34, 197, 94),
+            Warning = Color3.fromRGB(245, 158, 11),
+            Error = Color3.fromRGB(239, 68, 68),
+            Info = Color3.fromRGB(59, 130, 246),
+            
+            Border = Color3.fromRGB(75, 85, 99),
+            Shadow = Color3.fromRGB(0, 0, 0),
+            Glow = Color3.fromRGB(88, 101, 242)
+        },
+        Effects = {
+            BlurIntensity = 50,
+            GlowIntensity = 0.8,
+            ShadowOpacity = 0.3
+        }
+    },
+    
+    Ocean = {
+        Name = "Ocean Depths",
+        Description = "Calming ocean blue theme",
+        Colors = {
+            Primary = Color3.fromRGB(14, 165, 233),
+            Secondary = Color3.fromRGB(56, 189, 248),
+            Accent = Color3.fromRGB(125, 211, 252),
+            
+            Background = Color3.fromRGB(8, 47, 73),
+            Surface = Color3.fromRGB(15, 58, 88),
+            Card = Color3.fromRGB(23, 72, 106),
+            Overlay = Color3.fromRGB(31, 85, 124),
+            
+            Text = Color3.fromRGB(241, 245, 249),
+            TextSecondary = Color3.fromRGB(148, 163, 184),
+            TextDisabled = Color3.fromRGB(71, 85, 105),
+            
+            Success = Color3.fromRGB(16, 185, 129),
+            Warning = Color3.fromRGB(245, 158, 11),
+            Error = Color3.fromRGB(239, 68, 68),
+            Info = Color3.fromRGB(14, 165, 233),
+            
+            Border = Color3.fromRGB(51, 116, 167),
+            Shadow = Color3.fromRGB(0, 0, 0),
+            Glow = Color3.fromRGB(14, 165, 233)
+        },
+        Effects = {
+            BlurIntensity = 40,
+            GlowIntensity = 0.6,
+            ShadowOpacity = 0.4
+        }
+    },
+    
+    Sunset = {
+        Name = "Sunset Glow",
+        Description = "Warm sunset gradient theme",
+        Colors = {
+            Primary = Color3.fromRGB(251, 146, 60),
+            Secondary = Color3.fromRGB(251, 191, 36),
+            Accent = Color3.fromRGB(252, 211, 77),
+            
+            Background = Color3.fromRGB(69, 26, 3),
+            Surface = Color3.fromRGB(92, 38, 8),
+            Card = Color3.fromRGB(120, 53, 15),
+            Overlay = Color3.fromRGB(146, 64, 14),
+            
+            Text = Color3.fromRGB(254, 252, 232),
+            TextSecondary = Color3.fromRGB(217, 119, 6),
+            TextDisabled = Color3.fromRGB(146, 64, 14),
+            
+            Success = Color3.fromRGB(34, 197, 94),
+            Warning = Color3.fromRGB(251, 146, 60),
+            Error = Color3.fromRGB(239, 68, 68),
+            Info = Color3.fromRGB(59, 130, 246),
+            
+            Border = Color3.fromRGB(180, 83, 9),
+            Shadow = Color3.fromRGB(0, 0, 0),
+            Glow = Color3.fromRGB(251, 146, 60)
+        },
+        Effects = {
+            BlurIntensity = 45,
+            GlowIntensity = 0.7,
+            ShadowOpacity = 0.35
+        }
+    },
+    
+    Forest = {
+        Name = "Forest Green",
+        Description = "Natural forest green theme",
+        Colors = {
+            Primary = Color3.fromRGB(34, 197, 94),
+            Secondary = Color3.fromRGB(74, 222, 128),
+            Accent = Color3.fromRGB(134, 239, 172),
+            
+            Background = Color3.fromRGB(20, 83, 45),
+            Surface = Color3.fromRGB(22, 101, 52),
+            Card = Color3.fromRGB(34, 120, 64),
+            Overlay = Color3.fromRGB(47, 142, 79),
+            
+            Text = Color3.fromRGB(240, 253, 244),
+            TextSecondary = Color3.fromRGB(134, 239, 172),
+            TextDisabled = Color3.fromRGB(74, 85, 104),
+            
+            Success = Color3.fromRGB(34, 197, 94),
+            Warning = Color3.fromRGB(245, 158, 11),
+            Error = Color3.fromRGB(239, 68, 68),
+            Info = Color3.fromRGB(59, 130, 246),
+            
+            Border = Color3.fromRGB(74, 159, 106),
+            Shadow = Color3.fromRGB(0, 0, 0),
+            Glow = Color3.fromRGB(34, 197, 94)
+        },
+        Effects = {
+            BlurIntensity = 35,
+            GlowIntensity = 0.5,
+            ShadowOpacity = 0.25
+        }
+    },
+    
+    Rose = {
+        Name = "Rose Pink",
+        Description = "Elegant rose pink theme",
+        Colors = {
+            Primary = Color3.fromRGB(244, 114, 182),
+            Secondary = Color3.fromRGB(249, 168, 212),
+            Accent = Color3.fromRGB(252, 207, 232),
+            
+            Background = Color3.fromRGB(76, 29, 56),
+            Surface = Color3.fromRGB(97, 42, 71),
+            Card = Color3.fromRGB(119, 55, 86),
+            Overlay = Color3.fromRGB(141, 68, 102),
+            
+            Text = Color3.fromRGB(253, 242, 248),
+            TextSecondary = Color3.fromRGB(249, 168, 212),
+            TextDisabled = Color3.fromRGB(107, 33, 76),
+            
+            Success = Color3.fromRGB(34, 197, 94),
+            Warning = Color3.fromRGB(245, 158, 11),
+            Error = Color3.fromRGB(239, 68, 68),
+            Info = Color3.fromRGB(59, 130, 246),
+            
+            Border = Color3.fromRGB(190, 82, 138),
+            Shadow = Color3.fromRGB(0, 0, 0),
+            Glow = Color3.fromRGB(244, 114, 182)
+        },
+        Effects = {
+            BlurIntensity = 40,
+            GlowIntensity = 0.6,
+            ShadowOpacity = 0.3
+        }
+    },
+    
+    Purple = {
+        Name = "Royal Purple",
+        Description = "Majestic purple theme",
+        Colors = {
+            Primary = Color3.fromRGB(147, 51, 234),
+            Secondary = Color3.fromRGB(167, 71, 254),
+            Accent = Color3.fromRGB(187, 91, 255),
+            
+            Background = Color3.fromRGB(42, 22, 66),
+            Surface = Color3.fromRGB(62, 32, 86),
+            Card = Color3.fromRGB(82, 42, 106),
+            Overlay = Color3.fromRGB(102, 52, 126),
+            
+            Text = Color3.fromRGB(240, 235, 250),
+            TextSecondary = Color3.fromRGB(180, 175, 195),
+            TextDisabled = Color3.fromRGB(120, 115, 135),
+            
+            Success = Color3.fromRGB(34, 197, 94),
+            Warning = Color3.fromRGB(245, 158, 11),
+            Error = Color3.fromRGB(239, 68, 68),
+            Info = Color3.fromRGB(59, 130, 246),
+            
+            Border = Color3.fromRGB(130, 80, 154),
+            Shadow = Color3.fromRGB(0, 0, 0),
+            Glow = Color3.fromRGB(147, 51, 234)
+        },
+        Effects = {
+            BlurIntensity = 55,
+            GlowIntensity = 0.9,
+            ShadowOpacity = 0.4
+        }
+    },
+    
+    Dark = {
+        Name = "Midnight Black",
+        Description = "Pure dark theme for night usage",
+        Colors = {
+            Primary = Color3.fromRGB(255, 255, 255),
+            Secondary = Color3.fromRGB(229, 231, 235),
+            Accent = Color3.fromRGB(156, 163, 175),
+            
+            Background = Color3.fromRGB(0, 0, 0),
+            Surface = Color3.fromRGB(17, 24, 39),
+            Card = Color3.fromRGB(31, 41, 55),
+            Overlay = Color3.fromRGB(55, 65, 81),
+            
+            Text = Color3.fromRGB(255, 255, 255),
+            TextSecondary = Color3.fromRGB(156, 163, 175),
+            TextDisabled = Color3.fromRGB(75, 85, 99),
+            
+            Success = Color3.fromRGB(34, 197, 94),
+            Warning = Color3.fromRGB(245, 158, 11),
+            Error = Color3.fromRGB(239, 68, 68),
+            Info = Color3.fromRGB(59, 130, 246),
+            
+            Border = Color3.fromRGB(75, 85, 99),
+            Shadow = Color3.fromRGB(0, 0, 0),
+            Glow = Color3.fromRGB(255, 255, 255)
+        },
+        Effects = {
+            BlurIntensity = 25,
+            GlowIntensity = 0.3,
+            ShadowOpacity = 0.2
+        }
+    },
+    
+    Light = {
+        Name = "Clean White",
+        Description = "Clean light theme for bright environments",
+        Colors = {
+            Primary = Color3.fromRGB(59, 130, 246),
+            Secondary = Color3.fromRGB(96, 165, 250),
+            Accent = Color3.fromRGB(147, 197, 253),
+            
+            Background = Color3.fromRGB(248, 250, 252),
+            Surface = Color3.fromRGB(255, 255, 255),
+            Card = Color3.fromRGB(248, 250, 252),
+            Overlay = Color3.fromRGB(243, 244, 246),
+            
+            Text = Color3.fromRGB(17, 24, 39),
+            TextSecondary = Color3.fromRGB(75, 85, 99),
+            TextDisabled = Color3.fromRGB(156, 163, 175),
+            
+            Success = Color3.fromRGB(34, 197, 94),
+            Warning = Color3.fromRGB(245, 158, 11),
+            Error = Color3.fromRGB(239, 68, 68),
+            Info = Color3.fromRGB(59, 130, 246),
+            
+            Border = Color3.fromRGB(229, 231, 235),
+            Shadow = Color3.fromRGB(0, 0, 0),
+            Glow = Color3.fromRGB(59, 130, 246)
+        },
+        Effects = {
+            BlurIntensity = 20,
+            GlowIntensity = 0.4,
+            ShadowOpacity = 0.15
+        }
+    }
+}
+
+-- Current theme reference
+local currentTheme = Themes.Default
+
+-- Advanced Settings System
+local Settings = {
+    -- Visual Design Settings
+    Design = {
+        Style = "Glassmorphism", -- Glassmorphism, Neumorphism, Flat, Material
+        BlurIntensity = 50,
+        GlassOpacity = 0.1,
+        ShadowDepth = 20,
+        BorderRadius = 8,
+        Animations = {
+            Speed = 0.3,
+            Style = "Quart", -- Linear, Quad, Cubic, Quart, Quint, Sine, Expo, Circ, Back, Elastic, Bounce
+            Easing = "Out" -- In, Out, InOut
+        }
+    },
+    
+    -- Interaction Settings
+    Interaction = {
+        SoundEffects = true,
+        HapticFeedback = true,
+        RippleEffects = true,
+        HoverEffects = true,
+        ParticleEffects = true,
+        ClickDelay = 0.1
+    },
+    
+    -- Performance Settings
+    Performance = {
+        QualityMode = "High", -- Low, Medium, High, Ultra
+        ReduceMotion = false,
+        MaxFPS = 60,
+        PreloadAssets = true,
+        SmartCaching = true,
+        MemoryOptimization = true
+    },
+    
+    -- Accessibility Settings
+    Accessibility = {
+        HighContrast = false,
+        LargeText = false,
+        ReduceTransparency = false,
+        VoiceOver = false,
+        KeyboardNavigation = true,
+        ColorBlindSupport = false
+    },
+    
+    -- General Settings
+    General = {
+        ToggleKey = Enum.KeyCode.RightControl,
+        AutoSave = true,
+        Language = "en",
+        DebugMode = false,
+        Analytics = false
+    },
+    
+    -- Layout Settings
+    Layout = {
+        AutoScale = true,
+        MinWidth = 600,
+        MaxWidth = 1200,
+        MinHeight = 400,
+        MaxHeight = 800,
+        Spacing = 8,
+        Padding = 16,
+        WindowPadding = 20
+    }
+}
+
+-- Enhanced Sound System
+local Sounds = {
+    Click = "rbxassetid://6895079853",
+    Hover = "rbxassetid://6895079853",
+    Toggle = "rbxassetid://131961136", 
+    Slide = "rbxassetid://131961136",
+    Success = "rbxassetid://6958727243",
+    Error = "rbxassetid://2865227271",
+    Warning = "rbxassetid://2865227271",
+    Notification = "rbxassetid://9086013202",
+    Open = "rbxassetid://12222030",
+    Close = "rbxassetid://12222030",
+    Tab = "rbxassetid://131961136",
+    Type = "rbxassetid://131961136",
+    Whoosh = "rbxassetid://131961136"
+}
+
+local function playSound(soundType, volume, pitch, speed)
+    if not Settings.Interaction.SoundEffects then return end
+    
+    local soundId = Sounds[soundType]
+    if not soundId then return end
+    
+    volume = volume or 0.3
+    pitch = pitch or 1
+    speed = speed or 1
+    
+    local sound = Instance.new("Sound")
+    sound.SoundId = soundId
+    sound.Volume = volume
+    sound.Pitch = pitch
+    sound.PlaybackSpeed = speed
+    sound.Parent = SoundService
+    sound:Play()
+    
+    -- Auto cleanup after sound finishes
+    sound.Ended:Connect(function()
+        sound:Destroy()
+    end)
+    
+    -- Failsafe cleanup after 10 seconds
+    task.delay(10, function()
+        if sound.Parent then
+            sound:Destroy()
+        end
+    end)
+    
+    return sound
+end
+
+-- Advanced Animation System
+local ActiveTweens = {}
+
+local function getAnimationInfo(duration, style, direction)
+    duration = duration or Settings.Design.Animations.Speed
+    style = style or Settings.Design.Animations.Style
+    direction = direction or Settings.Design.Animations.Easing
+    
+    -- Convert string styles to Enum values
+    local easingStyle = Enum.EasingStyle.Quart
+    local easingDirection = Enum.EasingDirection.Out
+    
+    -- Style conversion
+    if style == "Linear" then easingStyle = Enum.EasingStyle.Linear
+    elseif style == "Quad" then easingStyle = Enum.EasingStyle.Quad
+    elseif style == "Cubic" then easingStyle = Enum.EasingStyle.Cubic
+    elseif style == "Quart" then easingStyle = Enum.EasingStyle.Quart
+    elseif style == "Quint" then easingStyle = Enum.EasingStyle.Quint
+    elseif style == "Sine" then easingStyle = Enum.EasingStyle.Sine
+    elseif style == "Expo" then easingStyle = Enum.EasingStyle.Expo
+    elseif style == "Circ" then easingStyle = Enum.EasingStyle.Circ
+    elseif style == "Back" then easingStyle = Enum.EasingStyle.Back
+    elseif style == "Elastic" then easingStyle = Enum.EasingStyle.Elastic
+    elseif style == "Bounce" then easingStyle = Enum.EasingStyle.Bounce
+    end
+    
+    -- Direction conversion  
+    if direction == "In" then easingDirection = Enum.EasingDirection.In
+    elseif direction == "Out" then easingDirection = Enum.EasingDirection.Out
+    elseif direction == "InOut" then easingDirection = Enum.EasingDirection.InOut
+    end
+    
+    return TweenInfo.new(duration, easingStyle, easingDirection)
+end
+
+local function tween(instance, properties, duration, style, direction, callback)
+    -- Handle reduced motion setting
+    if Settings.Performance.ReduceMotion then
+        for prop, value in pairs(properties) do
+            instance[prop] = value
+        end
+        if callback then callback() end
+        return
+    end
+    
+    local tweenInfo = getAnimationInfo(duration, style, direction)
+    local tweenObj = TweenService:Create(instance, tweenInfo, properties)
+    
+    -- Track active tweens for performance monitoring
+    table.insert(ActiveTweens, tweenObj)
+    Lieris.Performance.AnimationsActive = #ActiveTweens
+    
+    -- Cleanup completed tweens
+    tweenObj.Completed:Connect(function()
+        for i, activeTween in ipairs(ActiveTweens) do
+            if activeTween == tweenObj then
+                table.remove(ActiveTweens, i)
+                break
+            end
+        end
+        Lieris.Performance.AnimationsActive = #ActiveTweens
+        
+        if callback then callback() end
+    end)
+    
+    tweenObj:Play()
+    return tweenObj
+end
+
+-- Enhanced Visual Effects System
+local function createCorner(instance, radius)
+    radius = radius or Settings.Design.BorderRadius
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, scaleNumber(radius))
+    corner.Parent = instance
+    return corner
+end
+
+local function createStroke(instance, color, thickness, transparency)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or currentTheme.Colors.Border
+    stroke.Thickness = scaleNumber(thickness or 1)
+    stroke.Transparency = transparency or 0.5
+    stroke.Parent = instance
+    return stroke
+end
+
+local function createShadow(instance, intensity, color, transparency)
+    if Settings.Performance.QualityMode == "Low" then return end
+    
+    intensity = intensity or Settings.Design.ShadowDepth
+    color = color or currentTheme.Colors.Shadow
+    transparency = transparency or 0.8
+    
+    local shadow = Instance.new("Frame")
+    shadow.Name = "Shadow"
+    shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    shadow.BackgroundColor3 = color
+    shadow.BackgroundTransparency = transparency
+    shadow.BorderSizePixel = 0
+    shadow.Position = UDim2.new(0.5, scaleNumber(2), 0.5, scaleNumber(2))
+    shadow.Size = UDim2.new(1, scaleNumber(intensity), 1, scaleNumber(intensity))
+    shadow.ZIndex = (instance.ZIndex or 1) - 1
+    shadow.Parent = instance.Parent
+    
+    createCorner(shadow, Settings.Design.BorderRadius + 2)
+    
+    return shadow
+end
+
+local function createBlur(instance, intensity)
+    if Settings.Performance.QualityMode == "Low" then return end
+    if Settings.Design.Style ~= "Glassmorphism" then return end
+    
+    local blur = Instance.new("BlurEffect")
+    blur.Size = intensity or currentTheme.Effects.BlurIntensity or Settings.Design.BlurIntensity
+    blur.Parent = instance
+    return blur
+end
+
+local function createRipple(parent, position, color, size)
+    if not Settings.Interaction.RippleEffects then return end
+    if Settings.Performance.QualityMode == "Low" then return end
+    
+    local ripple = Instance.new("Frame")
+    ripple.Name = "Ripple"
+    ripple.BackgroundColor3 = color or Color3.fromRGB(255, 255, 255)
+    ripple.BackgroundTransparency = 0.7
+    ripple.BorderSizePixel = 0
+    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+    ripple.Position = UDim2.new(0, position.X, 0, position.Y)
+    ripple.Size = UDim2.new(0, 0, 0, 0)
+    ripple.ZIndex = (parent.ZIndex or 1) + 10
+    ripple.Parent = parent
+    
+    createCorner(ripple, 9999)
+    
+    local maxSize = size or math.max(parent.AbsoluteSize.X, parent.AbsoluteSize.Y) * 2.5
+    
+    tween(ripple, {
+        Size = UDim2.new(0, maxSize, 0, maxSize),
+        BackgroundTransparency = 1
+    }, 0.6, "Quad", "Out", function()
+        ripple:Destroy()
+    end)
+    
+    return ripple
+end
+
+local function createGlow(instance, intensity, color)
+    if Settings.Performance.QualityMode ~= "Ultra" then return end
+    
+    local glow = Instance.new("PointLight")
+    glow.Brightness = intensity or 1
+    glow.Color = color or currentTheme.Colors.Glow
+    glow.Range = scaleNumber(50)
+    glow.Parent = instance
+    return glow
+end
+
+-- Enhanced UI Component Creation System
+local function createFrame(config)
+    config = config or {}
+    
+    local frame = Instance.new("Frame")
+    frame.Name = config.Name or "LierisFrame"
+    frame.BackgroundColor3 = config.BackgroundColor or currentTheme.Colors.Card
+    frame.BackgroundTransparency = config.Transparency or Settings.Design.GlassOpacity
+    frame.BorderSizePixel = 0
+    frame.Size = config.Size or UDim2.new(1, 0, 0, scaleNumber(50))
+    frame.Position = config.Position or UDim2.new(0, 0, 0, 0)
+    frame.ClipsDescendants = config.ClipsDescendants ~= false
+    frame.ZIndex = config.ZIndex or 1
+    frame.Parent = config.Parent
+    
+    -- Add visual enhancements
+    if config.Corner ~= false then
+        createCorner(frame, config.CornerRadius)
+    end
+    
+    if config.Border then
+        createStroke(frame, config.BorderColor, config.BorderThickness, config.BorderTransparency)
+    end
+    
+    if config.Shadow then
+        createShadow(frame, config.ShadowIntensity, config.ShadowColor, config.ShadowTransparency)
+    end
+    
+    if config.Blur then
+        createBlur(frame, config.BlurIntensity)
+    end
+    
+    if config.Glow then
+        createGlow(frame, config.GlowIntensity, config.GlowColor)
+    end
+    
+    return frame
+end
+
+local function createButton(config)
+    config = config or {}
+    
+    local button = Instance.new("TextButton")
+    button.Name = config.Name or "LierisButton"
+    button.BackgroundColor3 = config.BackgroundColor or currentTheme.Colors.Primary
+    button.BackgroundTransparency = config.Transparency or 0
+    button.BorderSizePixel = 0
+    button.Size = config.Size or scaleUDim2(UDim2.new(1, 0, 0, 40))
+    button.Position = config.Position or UDim2.new(0, 0, 0, 0)
+    button.ZIndex = config.ZIndex or 2
+    button.Font = config.Font or Enum.Font.GothamMedium
+    button.Text = config.Text or "Button"
+    button.TextColor3 = config.TextColor or Color3.fromRGB(255, 255, 255)
+    button.TextSize = config.TextSize or scaleNumber(14)
+    button.TextWrapped = true
+    button.AutoButtonColor = false
+    button.Parent = config.Parent
+    
+    createCorner(button, config.CornerRadius)
+    
+    if config.Shadow then
+        createShadow(button, config.ShadowIntensity)
+    end
+    
+    -- Enhanced interaction effects
+    local originalColor = button.BackgroundColor3
+    local hoverColor = originalColor:Lerp(currentTheme.Colors.Accent, 0.2)
+    local clickColor = originalColor:Lerp(Color3.fromRGB(0, 0, 0), 0.1)
+    
+    -- Hover effects
+    button.MouseEnter:Connect(function()
+        if Settings.Interaction.HoverEffects then
+            tween(button, {BackgroundColor3 = hoverColor}, 0.15)
+            playSound("Hover", 0.1)
+        end
+    end)
+    
+    button.MouseLeave:Connect(function()
+        if Settings.Interaction.HoverEffects then
+            tween(button, {BackgroundColor3 = originalColor}, 0.15)
+        end
+    end)
+    
+    -- Click effects
+    button.MouseButton1Down:Connect(function()
+        tween(button, {BackgroundColor3 = clickColor}, 0.1)
+    end)
+    
+    button.MouseButton1Up:Connect(function()
+        tween(button, {BackgroundColor3 = hoverColor}, 0.1)
+    end)
+    
+    button.MouseButton1Click:Connect(function(x, y)
+        -- Create ripple effect at click position
+        local relativePos = Vector2.new(x - button.AbsolutePosition.X, y - button.AbsolutePosition.Y)
+        createRipple(button, relativePos, Color3.fromRGB(255, 255, 255))
+        
+        playSound("Click")
+        
+        -- Execute callback with slight delay for better UX
+        if config.Callback then
+            task.wait(Settings.Interaction.ClickDelay)
+            config.Callback()
+        end
+    end)
+    
+    return button
+end
+
+-- Configuration Management System
+function Lieris:SaveConfiguration()
+    if not Settings.General.AutoSave then return end
+    if not writefile then return end
+    
+    local config = {
+        Flags = self.Flags,
+        Settings = Settings,
+        Theme = currentTheme.Name,
+        Version = self.Version,
+        SaveTime = os.time()
+    }
+    
+    local success, result = pcall(function()
+        if not isfolder("Lieris") then
+            makefolder("Lieris")
+        end
+        
+        writefile("Lieris/config.json", HttpService:JSONEncode(config))
+    end)
+    
+    if not success then
+        warn("Lieris: Failed to save configuration:", result)
+    end
+end
+
+function Lieris:LoadConfiguration()
+    if not readfile or not isfile("Lieris/config.json") then return end
+    
+    local success, config = pcall(function()
+        return HttpService:JSONDecode(readfile("Lieris/config.json"))
+    end)
+    
+    if success and config then
+        -- Load flags
+        if config.Flags then
+            for flag, value in pairs(config.Flags) do
+                self.Flags[flag] = value
+            end
+        end
+        
+        -- Load settings
+        if config.Settings then
+            for category, settings in pairs(config.Settings) do
+                if Settings[category] then
+                    for setting, value in pairs(settings) do
+                        Settings[category][setting] = value
+                    end
+                end
+            end
+        end
+        
+        -- Load theme
+        if config.Theme and Themes[config.Theme] then
+            self:SetTheme(config.Theme)
+        end
+        
+        print("Lieris: Configuration loaded successfully")
+    else
+        warn("Lieris: Failed to load configuration")
+    end
+end
+
+-- Theme Management System
+function Lieris:SetTheme(themeName)
+    if not Themes[themeName] then 
+        warn("Lieris: Theme '" .. themeName .. "' not found")
+        return false
+    end
+    
+    local oldTheme = currentTheme
+    currentTheme = Themes[themeName]
+    
+    -- Update all existing windows with new theme
+    for _, window in pairs(self.Windows) do
+        if window.UpdateTheme then
+            window:UpdateTheme(currentTheme, oldTheme)
+        end
+    end
+    
+    -- Save configuration
+    self:SaveConfiguration()
+    
+    print("Lieris: Theme changed to " .. currentTheme.Name)
+    return true
+end
+
+function Lieris:GetTheme(themeName)
+    return Themes[themeName] or currentTheme
+end
+
+function Lieris:GetCurrentTheme()
+    return currentTheme
+end
+
+function Lieris:ListThemes()
+    local themeList = {}
+    for themeName, theme in pairs(Themes) do
+        table.insert(themeList, {
+            Name = themeName,
+            DisplayName = theme.Name,
+            Description = theme.Description
+        })
+    end
+    return themeList
+end
+
+-- Flag Management System
+function Lieris:SetFlag(flag, value)
+    local oldValue = self.Flags[flag]
+    self.Flags[flag] = value
+    
+    -- Auto-save if enabled
+    if Settings.General.AutoSave then
+        self:SaveConfiguration()
+    end
+    
+    -- Debug output
+    if Settings.General.DebugMode then
+        print("Lieris: Flag '" .. flag .. "' changed from", oldValue, "to", value)
+    end
+    
+    return true
+end
+
+function Lieris:GetFlag(flag)
+    return self.Flags[flag]
+end
+
+function Lieris:RemoveFlag(flag)
+    local value = self.Flags[flag]
+    self.Flags[flag] = nil
+    
+    if Settings.General.AutoSave then
+        self:SaveConfiguration()
+    end
+    
+    return value
+end
+
+function Lieris:ListFlags()
+    return self.Flags
+end
+
+-- Enhanced Notification System
+function Lieris:CreateNotification(config)
+    config = config or {}
+    
+    -- Create notification container if it doesn't exist
+    if not self.NotificationContainer then
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "LierisNotifications"
+        screenGui.ResetOnSpawn = false
+        screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        screenGui.IgnoreGuiInset = true
+        
+        -- Enhanced protection
+        if syn and syn.protect_gui then
+            syn.protect_gui(screenGui)
+        end
+        
+        -- Safe parent assignment
+        local success = pcall(function()
+            screenGui.Parent = CoreGui
+        end)
+        
+        if not success then
+            screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+        end
+        
+        local container = createFrame({
+            Name = "NotificationContainer",
+            Parent = screenGui,
+            Size = UDim2.new(0, scaleNumber(320), 1, -scaleNumber(40)),
+            Position = UDim2.new(1, -scaleNumber(340), 0, scaleNumber(20)),
+            BackgroundTransparency = 1,
+            Corner = false,
+            Border = false,
+            Shadow = false,
+            ZIndex = 1000
+        })
+        
+        local listLayout = Instance.new("UIListLayout")
+        listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        listLayout.Padding = UDim.new(0, scaleNumber(10))
+        listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+        listLayout.Parent = container
+        
+        self.NotificationContainer = container
+    end
+    
+    -- Create notification frame
+    local notification = createFrame({
+        Name = "Notification",
+        Parent = self.NotificationContainer,
+        Size = UDim2.new(1, 0, 0, scaleNumber(config.Height or 80)),
+        Position = UDim2.new(1, 0, 0, 0), -- Start off-screen
+        BackgroundColor = currentTheme.Colors.Card,
+        Transparency = 0,
+        Border = true,
+        Shadow = true,
+        Blur = Settings.Design.Style == "Glassmorphism",
+        ZIndex = 1001
+    })
+    
+    -- Status indicator bar
+    local statusColor = currentTheme.Colors.Primary
+    if config.Type == "Success" then statusColor = currentTheme.Colors.Success
+    elseif config.Type == "Warning" then statusColor = currentTheme.Colors.Warning
+    elseif config.Type == "Error" then statusColor = currentTheme.Colors.Error
+    elseif config.Type == "Info" then statusColor = currentTheme.Colors.Info
+    end
+    
+    local statusBar = createFrame({
+        Name = "StatusBar",
+        Parent = notification,
+        Size = UDim2.new(0, scaleNumber(4), 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundColor = statusColor,
+        Corner = false,
+        Border = false,
+        Shadow = false,
+        ZIndex = 1002
+    })
+    
+    -- Icon (if provided)
+    if config.Icon then
+        local iconFrame = createFrame({
+            Name = "IconFrame",
+            Parent = notification,
+            Size = UDim2.new(0, scaleNumber(40), 0, scaleNumber(40)),
+            Position = UDim2.new(0, scaleNumber(16), 0, scaleNumber(20)),
+            BackgroundColor = statusColor,
+            Transparency = 0.1,
+            ZIndex = 1002
+        })
+        
+        local icon = Instance.new("ImageLabel")
+        icon.Name = "Icon"
+        icon.BackgroundTransparency = 1
+        icon.Size = UDim2.new(0.7, 0, 0.7, 0)
+        icon.Position = UDim2.new(0.15, 0, 0.15, 0)
+        icon.Image = config.Icon
+        icon.ImageColor3 = statusColor
+        icon.ZIndex = 1003
+        icon.Parent = iconFrame
+    end
+    
+    -- Title
+    local titleOffset = config.Icon and scaleNumber(70) or scaleNumber(16)
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.new(0, titleOffset, 0, scaleNumber(8))
+    title.Size = UDim2.new(1, -titleOffset - scaleNumber(16), 0, scaleNumber(20))
+    title.Font = Enum.Font.GothamBold
+    title.Text = config.Title or "Notification"
+    title.TextColor3 = currentTheme.Colors.Text
+    title.TextSize = scaleNumber(14)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.ZIndex = 1002
+    title.Parent = notification
+    
+    -- Content
+    local content = Instance.new("TextLabel")
+    content.Name = "Content"
+    content.BackgroundTransparency = 1
+    content.Position = UDim2.new(0, titleOffset, 0, scaleNumber(32))
+    content.Size = UDim2.new(1, -titleOffset - scaleNumber(16), 0, scaleNumber(40))
+    content.Font = Enum.Font.Gotham
+    content.Text = config.Content or "This is a notification"
+    content.TextColor3 = currentTheme.Colors.TextSecondary
+    content.TextSize = scaleNumber(12)
+    content.TextXAlignment = Enum.TextXAlignment.Left
+    content.TextYAlignment = Enum.TextYAlignment.Top
+    content.TextWrapped = true
+    content.ZIndex = 1002
+    content.Parent = notification
+    
+    -- Close button (optional)
+    if config.Closable ~= false then
+        local closeBtn = createButton({
+            Name = "CloseButton",
+            Parent = notification,
+            Size = UDim2.new(0, scaleNumber(20), 0, scaleNumber(20)),
+            Position = UDim2.new(1, -scaleNumber(30), 0, scaleNumber(10)),
+            BackgroundColor = currentTheme.Colors.Error,
+            Text = "×",
+            TextSize = scaleNumber(12),
+            ZIndex = 1003,
+            Callback = function()
+                tween(notification, {
+                    Position = UDim2.new(1, 0, 0, 0),
+                    BackgroundTransparency = 1
+                }, 0.3, "Quad", "In", function()
+                    notification:Destroy()
+                end)
+            end
+        })
+    end
+    
+    -- Animate notification in
+    tween(notification, {Position = UDim2.new(0, 0, 0, 0)}, 0.5, "Back", "Out")
+    
+    playSound("Notification")
+    
+    -- Auto-dismiss notification
+    local duration = config.Duration or 5
+    task.spawn(function()
+        task.wait(duration)
+        
+        if notification.Parent then
+            tween(notification, {
+                Position = UDim2.new(1, 0, 0, 0),
+                BackgroundTransparency = 1
+            }, 0.3, "Quad", "In", function()
+                if notification.Parent then
+                    notification:Destroy()
+                end
+            end)
+        end
+    end)
+    
+    return notification
+end
+
+-- Advanced Window Creation System
+function Lieris:CreateWindow(config)
+    -- Initialize device detection and load configuration
+    detectDevice()
+    self:LoadConfiguration()
+    
+    config = config or {}
+    
+    local window = {
+        Config = config,
+        Tabs = {},
+        Elements = {},
+        IsVisible = true,
+        IsMinimized = false,
+        Theme = currentTheme,
+        Flags = {}
+    }
+    
+    -- Create main ScreenGui with enhanced protection
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = config.Name or "LierisInterface"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.IgnoreGuiInset = false
+    screenGui.DisplayOrder = 100
+    
+    -- Enhanced GUI protection
+    if syn and syn.protect_gui then
+        syn.protect_gui(screenGui)
+    end
+    
+    -- Safe parent assignment with fallback
+    local success = pcall(function()
+        screenGui.Parent = CoreGui
+    end)
+    
+    if not success then
+        screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    end
+    
+    window.ScreenGui = screenGui
+    
+    -- Calculate adaptive window size
+    local windowSize
+    if Device.Type == "Mobile" then
+        windowSize = UDim2.new(0.95, 0, 0.85, 0)
+    elseif Device.Type == "Tablet" then
+        windowSize = UDim2.new(0.8, 0, 0.75, 0)
+    elseif Device.Type == "VR" then
+        windowSize = scaleUDim2(UDim2.new(0, 1000, 0, 700))
+    else
+        windowSize = scaleUDim2(UDim2.new(0, 800, 0, 600))
+    end
+    
+    -- Apply size constraints
+    if Settings.Layout.AutoScale then
+        local maxWidth = math.min(windowSize.X.Offset, scaleNumber(Settings.Layout.MaxWidth))
+        local maxHeight = math.min(windowSize.Y.Offset, scaleNumber(Settings.Layout.MaxHeight))
+        local minWidth = math.max(windowSize.X.Offset, scaleNumber(Settings.Layout.MinWidth))
+        local minHeight = math.max(windowSize.Y.Offset, scaleNumber(Settings.Layout.MinHeight))
+        
+        windowSize = UDim2.new(0, math.clamp(windowSize.X.Offset, minWidth, maxWidth), 
+                              0, math.clamp(windowSize.Y.Offset, minHeight, maxHeight))
+    end
+    
+    -- Main container with glassmorphism effects
+    local main = createFrame({
+        Name = "Main",
+        Parent = screenGui,
+        Size = windowSize,
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        BackgroundColor = currentTheme.Colors.Background,
+        Transparency = Settings.Design.GlassOpacity,
+        Border = true,
+        Shadow = true,
+        Blur = Settings.Design.Style == "Glassmorphism",
+        ZIndex = 1
+    })
+    
+    main.AnchorPoint = Vector2.new(0.5, 0.5)
+    window.Main = main
+    
+    -- Enhanced topbar with glassmorphism
+    local topbar = createFrame({
+        Name = "Topbar",
+        Parent = main,
+        Size = UDim2.new(1, 0, 0, scaleNumber(50)),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundColor = currentTheme.Colors.Surface,
+        Transparency = 0.1,
+        Border = false,
+        Shadow = false,
+        Blur = Settings.Design.Style == "Glassmorphism",
+        ZIndex = 2
+    })
+    
+    -- Add gradient overlay for topbar
+    local topbarGradient = Instance.new("UIGradient")
+    topbarGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, currentTheme.Colors.Primary),
+        ColorSequenceKeypoint.new(1, currentTheme.Colors.Secondary)
+    }
+    topbarGradient.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.95),
+        NumberSequenceKeypoint.new(1, 0.98)
+    }
+    topbarGradient.Rotation = 45
+    topbarGradient.Parent = topbar
+    
+    -- Enhanced title with glow effect
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.new(0, scaleNumber(20), 0, 0)
+    title.Size = UDim2.new(1, -scaleNumber(140), 1, 0)
+    title.Font = Enum.Font.GothamBold
+    title.Text = config.Name or "Lieris Interface"
+    title.TextColor3 = currentTheme.Colors.Text
+    title.TextSize = scaleNumber(16)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.TextYAlignment = Enum.TextYAlignment.Center
+    title.ZIndex = 3
+    title.Parent = topbar
+    
+    -- Add title glow effect for premium look
+    if Settings.Performance.QualityMode == "Ultra" then
+        local titleGlow = title:Clone()
+        titleGlow.Name = "TitleGlow"
+        titleGlow.TextColor3 = currentTheme.Colors.Primary
+        titleGlow.TextTransparency = 0.8
+        titleGlow.Position = UDim2.new(0, scaleNumber(21), 0, 1)
+        titleGlow.ZIndex = title.ZIndex - 1
+        titleGlow.Parent = topbar
+    end
+    
+    -- Subtitle (if provided)
+    if config.LoadingSubtitle then
+        local subtitle = Instance.new("TextLabel")
+        subtitle.Name = "Subtitle"
+        subtitle.BackgroundTransparency = 1
+        subtitle.Position = UDim2.new(0, scaleNumber(20), 0, scaleNumber(24))
+        subtitle.Size = UDim2.new(1, -scaleNumber(140), 0, scaleNumber(16))
+        subtitle.Font = Enum.Font.Gotham
+        subtitle.Text = config.LoadingSubtitle
+        subtitle.TextColor3 = currentTheme.Colors.TextSecondary
+        subtitle.TextSize = scaleNumber(11)
+        subtitle.TextXAlignment = Enum.TextXAlignment.Left
+        subtitle.ZIndex = 3
+        subtitle.Parent = topbar
+    end
+    
+    -- Enhanced window controls
+    local controlsFrame = createFrame({
+        Name = "Controls",
+        Parent = topbar,
+        Size = UDim2.new(0, scaleNumber(110), 0, scaleNumber(30)),
+        Position = UDim2.new(1, -scaleNumber(120), 0, scaleNumber(10)),
+        BackgroundTransparency = 1,
+        Corner = false,
+        Border = false,
+        Shadow = false,
+        ZIndex = 3
+    })
+    
+    -- Close button with enhanced styling
+    local closeBtn = createButton({
+        Name = "CloseButton",
+        Parent = controlsFrame,
+        Size = UDim2.new(0, scaleNumber(25), 0, scaleNumber(25)),
+        Position = UDim2.new(1, -scaleNumber(25), 0, 0),
+        BackgroundColor = currentTheme.Colors.Error,
+        Text = "✕",
+        TextSize = scaleNumber(12),
+        Shadow = true,
+        ZIndex = 4,
+        Callback = function()
+            playSound("Close")
+            
+            -- Enhanced close animation
+            tween(main, {
+                Size = UDim2.new(0, 0, 0, 0),
+                BackgroundTransparency = 1,
+                Rotation = 5
+            }, 0.4, "Back", "In", function()
+                screenGui.Enabled = false
+            end)
+        end
+    })
+    
+    -- Minimize button
+    local minimizeBtn = createButton({
+        Name = "MinimizeButton",
+        Parent = controlsFrame,
+        Size = UDim2.new(0, scaleNumber(25), 0, scaleNumber(25)),
+        Position = UDim2.new(1, -scaleNumber(55), 0, 0),
+        BackgroundColor = currentTheme.Colors.Warning,
+        Text = "─",
+        TextSize = scaleNumber(12),
+        Shadow = true,
+        ZIndex = 4,
+        Callback = function()
+            window.IsMinimized = not window.IsMinimized
+            playSound("Toggle")
+            
+            local targetSize = window.IsMinimized and 
+                UDim2.new(windowSize.X.Scale, windowSize.X.Offset, 0, scaleNumber(50)) or 
+                windowSize
+            
+            tween(main, {Size = targetSize}, 0.4, "Back", "Out")
+        end
+    })
+    
+    -- Settings button
+    local settingsBtn = createButton({
+        Name = "SettingsButton",
+        Parent = controlsFrame,
+        Size = UDim2.new(0, scaleNumber(25), 0, scaleNumber(25)),
+        Position = UDim2.new(1, -scaleNumber(85), 0, 0),
+        BackgroundColor = currentTheme.Colors.Primary,
+        Text = "⚙",
+        TextSize = scaleNumber(10),
+        Shadow = true,
+        ZIndex = 4,
+        Callback = function()
+            playSound("Click")
+            -- Settings menu implementation would go here
+            Lieris:CreateNotification({
+                Title = "Settings",
+                Content = "Settings menu coming soon!",
+                Duration = 2,
+                Type = "Info"
+            })
+        end
+    })
+    
+    -- Content area with enhanced layout
+    local content = createFrame({
+        Name = "Content",
+        Parent = main,
+        Size = UDim2.new(1, 0, 1, -scaleNumber(50)),
+        Position = UDim2.new(0, 0, 0, scaleNumber(50)),
+        BackgroundTransparency = 1,
+        Corner = false,
+        Border = false,
+        Shadow = false,
+        ZIndex = 2
+    })
+    
+    -- Sidebar for tabs with enhanced styling
+    local sidebar = createFrame({
+        Name = "Sidebar",
+        Parent = content,
+        Size = UDim2.new(0, scaleNumber(200), 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundColor = currentTheme.Colors.Surface,
+        Transparency = 0.2,
+        Border = true,
+        Shadow = false,
+        Blur = Settings.Design.Style == "Glassmorphism",
+        ZIndex = 3
+    })
+    
+    -- Tab content area with enhanced styling
+    local tabContent = createFrame({
+        Name = "TabContent",
+        Parent = content,
+        Size = UDim2.new(1, -scaleNumber(210), 1, -scaleNumber(10)),
+        Position = UDim2.new(0, scaleNumber(210), 0, scaleNumber(10)),
+        BackgroundColor = currentTheme.Colors.Card,
+        Transparency = 0.05,
+        Border = true,
+        Shadow = false,
+        Blur = Settings.Design.Style == "Glassmorphism",
+        ZIndex = 3
+    })
+    
+    window.Sidebar = sidebar
+    window.TabContent = tabContent
+    
+    -- Enhanced drag functionality with smooth movement
+    local dragging = false
+    local dragInput, dragStart, startPos
+    local dragOffset = Vector2.new(0, 0)
+    
+    topbar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = main.Position
+            dragOffset = Vector2.new(input.Position.X - main.AbsolutePosition.X, input.Position.Y - main.AbsolutePosition.Y)
+            
+            playSound("Click", 0.1)
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                    playSound("Whoosh", 0.05)
+                end
+            end)
+        end
+    end)
+    
+    topbar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            local newPos = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+            
+            -- Smooth drag movement
+            tween(main, {Position = newPos}, 0.05, "Linear")
+        end
+    end)
+    
+    -- Enhanced toggle keybind
+    UserInputService.InputBegan:Connect(function(input, processed)
+        if not processed and input.KeyCode == Settings.General.ToggleKey then
+            local wasVisible = screenGui.Enabled
+            screenGui.Enabled = not screenGui.Enabled
+            
+            playSound(screenGui.Enabled and "Open" or "Close")
+            
+            if screenGui.Enabled then
+                -- Animate window in
+                main.Size = UDim2.new(0, 0, 0, 0)
+                main.BackgroundTransparency = 1
+                tween(main, {
+                    Size = windowSize,
+                    BackgroundTransparency = Settings.Design.GlassOpacity
+                }, 0.6, "Back", "Out")
+            end
+        end
+    end)
+    
+    -- Window methods for tab management
+    function window:CreateTab(tabConfig)
+        tabConfig = tabConfig or {}
+        
+        local tab = {
+            Name = tabConfig.Name or "Tab",
+            Icon = tabConfig.Icon,
+            Elements = {},
+            IsActive = #self.Tabs == 0,
+            Window = self
+        }
+        
+        -- Enhanced tab button with modern styling
+        local tabButton = createButton({
+            Name = "TabButton",
+            Parent = self.Sidebar,
+            Size = UDim2.new(1, -scaleNumber(20), 0, scaleNumber(50)),
+            Position = UDim2.new(0, scaleNumber(10), 0, scaleNumber(10 + (#self.Tabs * 60))),
+            BackgroundColor = tab.IsActive and currentTheme.Colors.Primary or currentTheme.Colors.Card,
+            Text = tab.Name,
+            TextColor = tab.IsActive and Color3.fromRGB(255, 255, 255) or currentTheme.Colors.Text,
+            Transparency = tab.IsActive and 0 or 0.3,
+            Shadow = tab.IsActive,
+            ZIndex = 4,
+            Callback = function()
+                -- Enhanced tab switching with animations
+                for _, existingTab in pairs(self.Tabs) do
+                    if existingTab ~= tab then
+                        existingTab.IsActive = false
+                        existingTab.Frame.Visible = false
+                        tween(existingTab.Button, {
+                            BackgroundColor3 = currentTheme.Colors.Card,
+                            BackgroundTransparency = 0.3
+                        }, 0.2)
+                    end
+                end
+                
+                tab.IsActive = true
+                tab.Frame.Visible = true
+                tween(tabButton, {
+                    BackgroundColor3 = currentTheme.Colors.Primary,
+                    BackgroundTransparency = 0
+                }, 0.2)
+                
+                playSound("Tab")
+                
+                -- Animate tab content in
+                tab.Frame.Position = UDim2.new(0, scaleNumber(20), 0, scaleNumber(10))
+                tween(tab.Frame, {
+                    Position = UDim2.new(0, scaleNumber(10), 0, scaleNumber(10))
+                }, 0.3, "Back", "Out")
+            end
+        })
+        
+        tab.Button = tabButton
+        
+        -- Enhanced tab content frame with scrolling
+        local tabFrame = Instance.new("ScrollingFrame")
+        tabFrame.Name = "TabFrame_" .. tab.Name
+        tabFrame.BackgroundTransparency = 1
+        tabFrame.BorderSizePixel = 0
+        tabFrame.Size = UDim2.new(1, -scaleNumber(20), 1, -scaleNumber(20))
+        tabFrame.Position = UDim2.new(0, scaleNumber(10), 0, scaleNumber(10))
+        tabFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        tabFrame.ScrollBarThickness = scaleNumber(8)
+        tabFrame.ScrollBarImageColor3 = currentTheme.Colors.Primary
+        tabFrame.ScrollBarImageTransparency = 0.3
+        tabFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+        tabFrame.Visible = tab.IsActive
+        tabFrame.ZIndex = 4
+        tabFrame.Parent = self.TabContent
+        
+        -- Enhanced scrollbar styling
+        tabFrame.ScrollBarImageColor3 = currentTheme.Colors.Primary
+        tabFrame.TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
+        tabFrame.BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
+        tabFrame.MidImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
+        
+        -- Layout management for elements
+        local listLayout = Instance.new("UIListLayout")
+        listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        listLayout.Padding = UDim.new(0, scaleNumber(Settings.Layout.Spacing))
+        listLayout.FillDirection = Enum.FillDirection.Vertical
+        listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        listLayout.Parent = tabFrame
+        
+        local padding = Instance.new("UIPadding")
+        padding.PaddingAll = UDim.new(0, scaleNumber(Settings.Layout.Padding))
+        padding.Parent = tabFrame
+        
+        -- Auto-update canvas size for scrolling
+        listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            local contentHeight = listLayout.AbsoluteContentSize.Y + scaleNumber(Settings.Layout.Padding * 2)
+            tabFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
+        end)
+        
+        tab.Frame = tabFrame
+        tab.ListLayout = listLayout
+        
+        -- Enhanced tab element creation methods
+        function tab:CreateSection(sectionConfig)
+            sectionConfig = sectionConfig or {}
+            
+            local section = Instance.new("TextLabel")
+            section.Name = "Section"
+            section.BackgroundTransparency = 1
+            section.Size = UDim2.new(1, 0, 0, scaleNumber(40))
+            section.Font = Enum.Font.GothamBold
+            section.Text = "  " .. (sectionConfig.Name or "Section")
+            section.TextColor3 = currentTheme.Colors.Primary
+            section.TextSize = scaleNumber(18)
+            section.TextXAlignment = Enum.TextXAlignment.Left
+            section.TextYAlignment = Enum.TextYAlignment.Center
+            section.ZIndex = 5
+            section.LayoutOrder = sectionConfig.LayoutOrder or (#tab.Elements + 1)
+            section.Parent = tabFrame
+            
+            -- Add enhanced underline with animation
+            local underline = createFrame({
+                Name = "Underline",
+                Parent = section,
+                Size = UDim2.new(0, 0, 0, scaleNumber(3)),
+                Position = UDim2.new(0, scaleNumber(10), 1, -scaleNumber(3)),
+                BackgroundColor = currentTheme.Colors.Primary,
+                Corner = false,
+                Border = false,
+                Shadow = false,
+                ZIndex = 6
+            })
+            
+            -- Animate underline in
+            tween(underline, {Size = UDim2.new(0.4, 0, 0, scaleNumber(3))}, 0.5, "Back", "Out")
+            
+            table.insert(tab.Elements, section)
+            return section
+        end
+        
+        function tab:CreateLabel(labelConfig)
+            labelConfig = labelConfig or {}
+            
+            local label = Instance.new("TextLabel")
+            label.Name = "Label"
+            label.BackgroundTransparency = 1
+            label.Size = UDim2.new(1, 0, 0, scaleNumber(labelConfig.Height or 30))
+            label.Font = labelConfig.Font or Enum.Font.Gotham
+            label.Text = labelConfig.Text or "Label"
+            label.TextColor3 = labelConfig.TextColor or currentTheme.Colors.Text
+            label.TextSize = labelConfig.TextSize or scaleNumber(14)
+            label.TextXAlignment = labelConfig.TextXAlignment or Enum.TextXAlignment.Left
+            label.TextYAlignment = labelConfig.TextYAlignment or Enum.TextYAlignment.Center
+            label.TextWrapped = labelConfig.TextWrapped ~= false
+            label.ZIndex = 5
+            label.LayoutOrder = labelConfig.LayoutOrder or (#tab.Elements + 1)
+            label.Parent = tabFrame
+            
+            local methods = {}
+            function methods:SetText(text)
+                label.Text = text
+            end
+            
+            function methods:SetTextColor(color)
+                label.TextColor3 = color
+            end
+            
+            table.insert(tab.Elements, label)
+            return methods
+        end
+        
+        function tab:CreateButton(buttonConfig)
+            buttonConfig = buttonConfig or {}
+            
+            local button = createButton({
+                Name = buttonConfig.Name or "Button",
+                Parent = tabFrame,
+                Size = UDim2.new(1, 0, 0, scaleNumber(buttonConfig.Height or 45)),
+                BackgroundColor = buttonConfig.BackgroundColor or currentTheme.Colors.Primary,
+                Text = buttonConfig.Name or "Button",
+                TextColor = buttonConfig.TextColor,
+                TextSize = buttonConfig.TextSize or scaleNumber(14),
+                Font = buttonConfig.Font,
+                Shadow = buttonConfig.Shadow ~= false,
+                ZIndex = 5,
+                Callback = buttonConfig.Callback
+            })
+            
+            button.LayoutOrder = buttonConfig.LayoutOrder or (#tab.Elements + 1)
+            
+            table.insert(tab.Elements, button)
+            return button
+        end
+        
+        function tab:CreateToggle(toggleConfig)
+            toggleConfig = toggleConfig or {}
+            
+            local toggleFrame = createFrame({
+                Name = "ToggleFrame",
+                Parent = tabFrame,
+                Size = UDim2.new(1, 0, 0, scaleNumber(toggleConfig.Height or 55)),
+                BackgroundColor = currentTheme.Colors.Card,
+                Transparency = 0.05,
+                Border = true,
+                Shadow = false,
+                ZIndex = 5
+            })
+            
+            toggleFrame.LayoutOrder = toggleConfig.LayoutOrder or (#tab.Elements + 1)
+            
+            -- Enhanced toggle label
+            local label = Instance.new("TextLabel")
+            label.Name = "Label"
+            label.BackgroundTransparency = 1
+            label.Position = UDim2.new(0, scaleNumber(20), 0, 0)
+            label.Size = UDim2.new(1, -scaleNumber(100), 1, 0)
+            label.Font = Enum.Font.GothamMedium
+            label.Text = toggleConfig.Name or "Toggle"
+            label.TextColor3 = currentTheme.Colors.Text
+            label.TextSize = scaleNumber(14)
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.TextYAlignment = Enum.TextYAlignment.Center
+            label.ZIndex = 6
+            label.Parent = toggleFrame
+            
+            -- Enhanced toggle switch with smooth animations
+            local switchTrack = createFrame({
+                Name = "SwitchTrack",
+                Parent = toggleFrame,
+                Size = UDim2.new(0, scaleNumber(55), 0, scaleNumber(28)),
+                Position = UDim2.new(1, -scaleNumber(75), 0.5, -scaleNumber(14)),
+                BackgroundColor = currentTheme.Colors.Surface,
+                Border = true,
+                Shadow = false,
+                ZIndex = 6,
+                CornerRadius = 14
+            })
+            
+            local switchKnob = createFrame({
+                Name = "SwitchKnob",
+                Parent = switchTrack,
+                Size = UDim2.new(0, scaleNumber(24), 0, scaleNumber(24)),
+                Position = UDim2.new(0, scaleNumber(2), 0.5, -scaleNumber(12)),
+                BackgroundColor = Color3.fromRGB(255, 255, 255),
+                Shadow = true,
+                Border = false,
+                ZIndex = 7,
+                CornerRadius = 12
+            })
+            
+            -- Add subtle glow to knob
+            if Settings.Performance.QualityMode == "Ultra" then
+                createGlow(switchKnob, 0.5, Color3.fromRGB(255, 255, 255))
+            end
+            
+            local value = toggleConfig.CurrentValue or false
+            
+            local function updateToggle(animate)
+                animate = animate ~= false
+                
+                local targetPos = value and 
+                    UDim2.new(1, -scaleNumber(26), 0.5, -scaleNumber(12)) or
+                    UDim2.new(0, scaleNumber(2), 0.5, -scaleNumber(12))
+                
+                local targetTrackColor = value and currentTheme.Colors.Primary or currentTheme.Colors.Surface
+                local targetKnobColor = value and currentTheme.Colors.Accent or Color3.fromRGB(255, 255, 255)
+                
+                if animate then
+                    tween(switchKnob, {Position = targetPos, BackgroundColor3 = targetKnobColor}, 0.25, "Back")
+                    tween(switchTrack, {BackgroundColor3 = targetTrackColor}, 0.25)
+                else
+                    switchKnob.Position = targetPos
+                    switchKnob.BackgroundColor3 = targetKnobColor
+                    switchTrack.BackgroundColor3 = targetTrackColor
+                end
+                
+                -- Update flag
+                if toggleConfig.Flag then
+                    Lieris:SetFlag(toggleConfig.Flag, value)
+                end
+                
+                -- Execute callback
+                if toggleConfig.Callback then
+                    toggleConfig.Callback(value)
+                end
+            end
+            
+            -- Initialize toggle state
+            updateToggle(false)
+            
+            -- Click handler with enhanced interaction
+            local clickDetector = Instance.new("TextButton")
+            clickDetector.BackgroundTransparency = 1
+            clickDetector.Size = UDim2.new(1, 0, 1, 0)
+            clickDetector.Text = ""
+            clickDetector.ZIndex = 8
+            clickDetector.Parent = toggleFrame
+            
+            clickDetector.MouseButton1Click:Connect(function()
+                value = not value
+                updateToggle(true)
+                playSound("Toggle")
+                
+                -- Create ripple effect
+                createRipple(switchTrack, Vector2.new(switchTrack.AbsoluteSize.X / 2, switchTrack.AbsoluteSize.Y / 2), 
+                           currentTheme.Colors.Primary, scaleNumber(100))
+            end)
+            
+            -- Enhanced hover effects
+            clickDetector.MouseEnter:Connect(function()
+                if Settings.Interaction.HoverEffects then
+                    tween(toggleFrame, {BackgroundTransparency = 0}, 0.2)
+                    playSound("Hover", 0.05)
+                end
+            end)
+            
+            clickDetector.MouseLeave:Connect(function()
+                if Settings.Interaction.HoverEffects then
+                    tween(toggleFrame, {BackgroundTransparency = 0.05}, 0.2)
+                end
+            end)
+            
+            local methods = {}
+            function methods:SetValue(newValue)
+                value = newValue
+                updateToggle(true)
+            end
+            
+            function methods:GetValue()
+                return value
+            end
+            
+            table.insert(tab.Elements, toggleFrame)
+            return methods
+        end
+        
+        function tab:CreateSlider(sliderConfig)
+            sliderConfig = sliderConfig or {}
+            
+            local sliderFrame = createFrame({
+                Name = "SliderFrame",
+                Parent = tabFrame,
+                Size = UDim2.new(1, 0, 0, scaleNumber(sliderConfig.Height or 75)),
+                BackgroundColor = currentTheme.Colors.Card,
+                Transparency = 0.05,
+                Border = true,
+                Shadow = false,
+                ZIndex = 5
+            })
+            
+            sliderFrame.LayoutOrder = sliderConfig.LayoutOrder or (#tab.Elements + 1)
+            
+            -- Enhanced slider label
+            local label = Instance.new("TextLabel")
+            label.Name = "Label"
+            label.BackgroundTransparency = 1
+            label.Position = UDim2.new(0, scaleNumber(20), 0, scaleNumber(8))
+            label.Size = UDim2.new(1, -scaleNumber(80), 0, scaleNumber(20))
+            label.Font = Enum.Font.GothamMedium
+            label.Text = sliderConfig.Name or "Slider"
+            label.TextColor3 = currentTheme.Colors.Text
+            label.TextSize = scaleNumber(14)
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.ZIndex = 6
+            label.Parent = sliderFrame
+            
+            -- Enhanced value display
+            local valueLabel = Instance.new("TextLabel")
+            valueLabel.Name = "ValueLabel"
+            valueLabel.BackgroundTransparency = 1
+            valueLabel.Position = UDim2.new(1, -scaleNumber(70), 0, scaleNumber(8))
+            valueLabel.Size = UDim2.new(0, scaleNumber(60), 0, scaleNumber(20))
+            valueLabel.Font = Enum.Font.GothamBold
+            valueLabel.Text = tostring(sliderConfig.CurrentValue or sliderConfig.Range and sliderConfig.Range[1] or 0)
+            valueLabel.TextColor3 = currentTheme.Colors.Primary
+            valueLabel.TextSize = scaleNumber(13)
+            valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+            valueLabel.ZIndex = 6
+            valueLabel.Parent = sliderFrame
+            
+            -- Enhanced slider track
+            local sliderTrack = createFrame({
+                Name = "SliderTrack",
+                Parent = sliderFrame,
+                Size = UDim2.new(1, -scaleNumber(40), 0, scaleNumber(8)),
+                Position = UDim2.new(0, scaleNumber(20), 0, scaleNumber(45)),
+                BackgroundColor = currentTheme.Colors.Surface,
+                Border = false,
+                Shadow = false,
+                ZIndex = 6,
+                CornerRadius = 4
+            })
+            
+            -- Enhanced slider fill with gradient
+            local sliderFill = createFrame({
+                Name = "SliderFill",
+                Parent = sliderTrack,
+                Size = UDim2.new(0, 0, 1, 0),
+                Position = UDim2.new(0, 0, 0, 0),
+                BackgroundColor = currentTheme.Colors.Primary,
+                Border = false,
+                Shadow = false,
+                ZIndex = 7,
+                CornerRadius = 4
+            })
+            
+            -- Add gradient to slider fill
+            local fillGradient = Instance.new("UIGradient")
+            fillGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0, currentTheme.Colors.Primary),
+                ColorSequenceKeypoint.new(1, currentTheme.Colors.Secondary)
+            }
+            fillGradient.Rotation = 90
+            fillGradient.Parent = sliderFill
+            
+            -- Enhanced slider knob
+            local sliderKnob = createFrame({
+                Name = "SliderKnob",
+                Parent = sliderFill,
+                Size = UDim2.new(0, scaleNumber(16), 0, scaleNumber(16)),
+                Position = UDim2.new(1, -scaleNumber(8), 0.5, -scaleNumber(8)),
+                BackgroundColor = Color3.fromRGB(255, 255, 255),
+                Border = false,
+                Shadow = true,
+                ZIndex = 8,
+                CornerRadius = 8
+            })
+            
+            -- Add glow to knob for premium look
+            if Settings.Performance.QualityMode == "Ultra" then
+                createGlow(sliderKnob, 0.7, currentTheme.Colors.Primary)
+            end
+            
+            local min = sliderConfig.Range and sliderConfig.Range[1] or 0
+            local max = sliderConfig.Range and sliderConfig.Range[2] or 100
+            local increment = sliderConfig.Increment or 1
+            local value = sliderConfig.CurrentValue or min
+            local suffix = sliderConfig.Suffix or ""
+            
+            local function updateSlider(animate)
+                animate = animate ~= false
+                
+                local percent = math.clamp((value - min) / (max - min), 0, 1)
+                local targetSize = UDim2.new(percent, 0, 1, 0)
+                
+                if animate then
+                    tween(sliderFill, {Size = targetSize}, 0.15)
+                else
+                    sliderFill.Size = targetSize
+                end
+                
+                valueLabel.Text = tostring(value) .. suffix
+                
+                -- Update flag
+                if sliderConfig.Flag then
+                    Lieris:SetFlag(sliderConfig.Flag, value)
+                end
+                
+                -- Execute callback
+                if sliderConfig.Callback then
+                    sliderConfig.Callback(value)
+                end
+            end
+            
+            -- Initialize slider
+            updateSlider(false)
+            
+            local dragging = false
+            local connection
+            
+            -- Enhanced drag detection
+            sliderTrack.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging = true
+                    playSound("Click", 0.1)
+                    
+                    local function updateValue(inputPos)
+                        local percent = math.clamp((inputPos.X - sliderTrack.AbsolutePosition.X) / sliderTrack.AbsoluteSize.X, 0, 1)
+                        local newValue = min + (max - min) * percent
+                        value = math.floor(newValue / increment + 0.5) * increment
+                        value = math.clamp(value, min, max)
+                        updateSlider(true)
+                    end
+                    
+                    updateValue(input.Position)
+                    
+                    connection = UserInputService.InputChanged:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                            if dragging then
+                                updateValue(input.Position)
+                            end
+                        end
+                    end)
+                    
+                    input.Changed:Connect(function()
+                        if input.UserInputState == Enum.UserInputState.End then
+                            dragging = false
+                            if connection then
+                                connection:Disconnect()
+                            end
+                            playSound("Slide", 0.05)
+                        end
+                    end)
+                end
+            end)
+            
+            -- Enhanced hover effects for slider
+            sliderFrame.MouseEnter:Connect(function()
+                if Settings.Interaction.HoverEffects then
+                    tween(sliderFrame, {BackgroundTransparency = 0}, 0.2)
+                    tween(sliderKnob, {Size = UDim2.new(0, scaleNumber(18), 0, scaleNumber(18))}, 0.2)
+                    playSound("Hover", 0.05)
+                end
+            end)
+            
+            sliderFrame.MouseLeave:Connect(function()
+                if Settings.Interaction.HoverEffects and not dragging then
+                    tween(sliderFrame, {BackgroundTransparency = 0.05}, 0.2)
+                    tween(sliderKnob, {Size = UDim2.new(0, scaleNumber(16), 0, scaleNumber(16))}, 0.2)
+                end
+            end)
+            
+            local methods = {}
+            function methods:SetValue(newValue)
+                value = math.clamp(newValue, min, max)
+                updateSlider(true)
+            end
+            
+            function methods:GetValue()
+                return value
+            end
+            
+            function methods:SetMin(newMin)
+                min = newMin
+                value = math.max(value, min)
+                updateSlider(true)
+            end
+            
+            function methods:SetMax(newMax)
+                max = newMax
+                value = math.min(value, max)
+                updateSlider(true)
+            end
+            
+            table.insert(tab.Elements, sliderFrame)
+            return methods
+        end
+        
+        function tab:CreateDropdown(dropdownConfig)
+            dropdownConfig = dropdownConfig or {}
+            
+            local dropdownFrame = createFrame({
+                Name = "DropdownFrame",
+                Parent = tabFrame,
+                Size = UDim2.new(1, 0, 0, scaleNumber(dropdownConfig.Height or 55)),
+                BackgroundColor = currentTheme.Colors.Card,
+                Transparency = 0.05,
+                Border = true,
+                Shadow = false,
+                ZIndex = 5
+            })
+            
+            dropdownFrame.ClipsDescendants = true
+            dropdownFrame.LayoutOrder = dropdownConfig.LayoutOrder or (#tab.Elements + 1)
+            
+            -- Enhanced dropdown label
+            local label = Instance.new("TextLabel")
+            label.Name = "Label"
+            label.BackgroundTransparency = 1
+            label.Position = UDim2.new(0, scaleNumber(20), 0, 0)
+            label.Size = UDim2.new(1, -scaleNumber(40), 0, scaleNumber(55))
+            label.Font = Enum.Font.GothamMedium
+            label.Text = (dropdownConfig.Name or "Dropdown") .. ": " .. (dropdownConfig.CurrentOption or dropdownConfig.Options and dropdownConfig.Options[1] or "None")
+            label.TextColor3 = currentTheme.Colors.Text
+            label.TextSize = scaleNumber(14)
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.TextYAlignment = Enum.TextYAlignment.Center
+            label.ZIndex = 6
+            label.Parent = dropdownFrame
+            
+            -- Enhanced dropdown arrow with rotation animation
+            local arrow = Instance.new("TextLabel")
+            arrow.Name = "Arrow"
+            arrow.BackgroundTransparency = 1
+            arrow.Position = UDim2.new(1, -scaleNumber(35), 0, 0)
+            arrow.Size = UDim2.new(0, scaleNumber(25), 0, scaleNumber(55))
+            arrow.Font = Enum.Font.GothamMedium
+            arrow.Text = "▼"
+            arrow.TextColor3 = currentTheme.Colors.TextSecondary
+            arrow.TextSize = scaleNumber(12)
+            arrow.ZIndex = 6
+            arrow.Parent = dropdownFrame
+            
+            -- Enhanced options container
+            local optionsFrame = createFrame({
+                Name = "OptionsFrame",
+                Parent = dropdownFrame,
+                Size = UDim2.new(1, 0, 0, 0),
+                Position = UDim2.new(0, 0, 0, scaleNumber(55)),
+                BackgroundColor = currentTheme.Colors.Surface,
+                Border = false,
+                Shadow = false,
+                ZIndex = 7,
+                Corner = false
+            })
+            
+            local optionsList = Instance.new("UIListLayout")
+            optionsList.SortOrder = Enum.SortOrder.LayoutOrder
+            optionsList.Parent = optionsFrame
+            
+            local currentOption = dropdownConfig.CurrentOption or (dropdownConfig.Options and dropdownConfig.Options[1]) or nil
+            local isOpen = false
+            
+            local function createOption(optionText, index)
+                local optionBtn = createButton({
+                    Name = "Option",
+                    Parent = optionsFrame,
+                    Size = UDim2.new(1, 0, 0, scaleNumber(40)),
+                    BackgroundColor = currentTheme.Colors.Surface,
+                    Text = optionText,
+                    TextSize = scaleNumber(13),
+                    TextColor = currentTheme.Colors.Text,
+                    CornerRadius = 0,
+                    Shadow = false,
+                    ZIndex = 8,
+                    Callback = function()
+                        currentOption = optionText
+                        label.Text = (dropdownConfig.Name or "Dropdown") .. ": " .. optionText
+                        
+                        -- Update flag
+                        if dropdownConfig.Flag then
+                            Lieris:SetFlag(dropdownConfig.Flag, optionText)
+                        end
+                        
+                        -- Execute callback
+                        if dropdownConfig.Callback then
+                            dropdownConfig.Callback(optionText)
+                        end
+                        
+                        -- Close dropdown with animation
+                        isOpen = false
+                        tween(dropdownFrame, {Size = UDim2.new(1, 0, 0, scaleNumber(55))}, 0.25, "Back")
+                        tween(optionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.25, "Back")
+                        tween(arrow, {Rotation = 0}, 0.25)
+                        
+                        playSound("Click")
+                    end
+                })
+                
+                optionBtn.LayoutOrder = index
+                return optionBtn
+            end
+            
+            -- Create initial options
+            if dropdownConfig.Options then
+                for i, option in ipairs(dropdownConfig.Options) do
+                    createOption(option, i)
+                end
+            end
+            
+            -- Enhanced click handler
+            local clickDetector = Instance.new("TextButton")
+            clickDetector.BackgroundTransparency = 1
+            clickDetector.Size = UDim2.new(1, 0, 0, scaleNumber(55))
+            clickDetector.Text = ""
+            clickDetector.ZIndex = 9
+            clickDetector.Parent = dropdownFrame
+            
+            clickDetector.MouseButton1Click:Connect(function()
+                isOpen = not isOpen
+                
+                if isOpen then
+                    local optionCount = dropdownConfig.Options and #dropdownConfig.Options or 0
+                    local newHeight = scaleNumber(55 + optionCount * 40)
+                    
+                    tween(dropdownFrame, {Size = UDim2.new(1, 0, 0, newHeight)}, 0.25, "Back")
+                    tween(optionsFrame, {Size = UDim2.new(1, 0, 0, scaleNumber(optionCount * 40))}, 0.25, "Back")
+                    tween(arrow, {Rotation = 180}, 0.25)
+                else
+                    tween(dropdownFrame, {Size = UDim2.new(1, 0, 0, scaleNumber(55))}, 0.25, "Back")
+                    tween(optionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.25, "Back")
+                    tween(arrow, {Rotation = 0}, 0.25)
+                end
+                
+                playSound("Click")
+            end)
+            
+            -- Enhanced hover effects
+            clickDetector.MouseEnter:Connect(function()
+                if Settings.Interaction.HoverEffects then
+                    tween(dropdownFrame, {BackgroundTransparency = 0}, 0.2)
+                    playSound("Hover", 0.05)
+                end
+            end)
+            
+            clickDetector.MouseLeave:Connect(function()
+                if Settings.Interaction.HoverEffects then
+                    tween(dropdownFrame, {BackgroundTransparency = 0.05}, 0.2)
+                end
+            end)
+            
+            local methods = {}
+            function methods:Refresh(newOptions, newDefault)
+                -- Clear existing options
+                for _, child in ipairs(optionsFrame:GetChildren()) do
+                    if child:IsA("TextButton") then
+                        child:Destroy()
+                    end
+                end
+                
+                dropdownConfig.Options = newOptions
+                if newOptions then
+                    for i, option in ipairs(newOptions) do
+                        createOption(option, i)
+                    end
+                end
+                
+                if newDefault then
+                    currentOption = newDefault
+                    label.Text = (dropdownConfig.Name or "Dropdown") .. ": " .. newDefault
+                end
+                
+                -- Close dropdown
+                isOpen = false
+                dropdownFrame.Size = UDim2.new(1, 0, 0, scaleNumber(55))
+                optionsFrame.Size = UDim2.new(1, 0, 0, 0)
+                arrow.Rotation = 0
+            end
+            
+            function methods:SetOption(option)
+                if dropdownConfig.Options and table.find(dropdownConfig.Options, option) then
+                    currentOption = option
+                    label.Text = (dropdownConfig.Name or "Dropdown") .. ": " .. option
+                end
+            end
+            
+            function methods:GetOption()
+                return currentOption
+            end
+            
+            table.insert(tab.Elements, dropdownFrame)
+            return methods
+        end
+        
+        function tab:CreateTextbox(textboxConfig)
+            textboxConfig = textboxConfig or {}
+            
+            local textboxFrame = createFrame({
+                Name = "TextboxFrame",
+                Parent = tabFrame,
+                Size = UDim2.new(1, 0, 0, scaleNumber(textboxConfig.Height or 75)),
+                BackgroundColor = currentTheme.Colors.Card,
+                Transparency = 0.05,
+                Border = true,
+                Shadow = false,
+                ZIndex = 5
+            })
+            
+            textboxFrame.LayoutOrder = textboxConfig.LayoutOrder or (#tab.Elements + 1)
+            
+            -- Enhanced textbox label
+            local label = Instance.new("TextLabel")
+            label.Name = "Label"
+            label.BackgroundTransparency = 1
+            label.Position = UDim2.new(0, scaleNumber(20), 0, scaleNumber(8))
+            label.Size = UDim2.new(1, -scaleNumber(40), 0, scaleNumber(20))
+            label.Font = Enum.Font.GothamMedium
+            label.Text = textboxConfig.Name or "Textbox"
+            label.TextColor3 = currentTheme.Colors.Text
+            label.TextSize = scaleNumber(14)
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.ZIndex = 6
+            label.Parent = textboxFrame
+            
+            -- Enhanced textbox container
+            local textboxContainer = createFrame({
+                Name = "TextboxContainer",
+                Parent = textboxFrame,
+                Size = UDim2.new(1, -scaleNumber(40), 0, scaleNumber(35)),
+                Position = UDim2.new(0, scaleNumber(20), 0, scaleNumber(35)),
+                BackgroundColor = currentTheme.Colors.Surface,
+                Border = true,
+                Shadow = false,
+                ZIndex = 6,
+                CornerRadius = 6
+            })
+            
+            -- Enhanced textbox input
+            local textboxInput = Instance.new("TextBox")
+            textboxInput.Name = "TextboxInput"
+            textboxInput.BackgroundTransparency = 1
+            textboxInput.Size = UDim2.new(1, -scaleNumber(20), 1, 0)
+            textboxInput.Position = UDim2.new(0, scaleNumber(10), 0, 0)
+            textboxInput.Font = Enum.Font.Gotham
+            textboxInput.PlaceholderText = textboxConfig.PlaceholderText or "Enter text..."
+            textboxInput.Text = textboxConfig.CurrentText or ""
+            textboxInput.TextColor3 = currentTheme.Colors.Text
+            textboxInput.PlaceholderColor3 = currentTheme.Colors.TextSecondary
+            textboxInput.TextSize = scaleNumber(13)
+            textboxInput.TextXAlignment = Enum.TextXAlignment.Left
+            textboxInput.ClearTextOnFocus = textboxConfig.ClearTextOnFocus or false
+            textboxInput.TextScaled = false
+            textboxInput.ZIndex = 7
+            textboxInput.Parent = textboxContainer
+            
+            -- Enhanced focus effects
+            textboxInput.Focused:Connect(function()
+                tween(textboxContainer, {
+                    BackgroundColor3 = currentTheme.Colors.Primary:Lerp(currentTheme.Colors.Surface, 0.8)
+                }, 0.2)
+                playSound("Click", 0.1)
+            end)
+            
+            textboxInput.FocusLost:Connect(function(enterPressed)
+                tween(textboxContainer, {
+                    BackgroundColor3 = currentTheme.Colors.Surface
+                }, 0.2)
+                
+                -- Update flag
+                if textboxConfig.Flag then
+                    Lieris:SetFlag(textboxConfig.Flag, textboxInput.Text)
+                end
+                
+                -- Execute callback
+                if textboxConfig.Callback then
+                    textboxConfig.Callback(textboxInput.Text, enterPressed)
+                end
+                
+                playSound("Type", 0.05)
+            end)
+            
+            -- Enhanced hover effects
+            textboxFrame.MouseEnter:Connect(function()
+                if Settings.Interaction.HoverEffects then
+                    tween(textboxFrame, {BackgroundTransparency = 0}, 0.2)
+                    playSound("Hover", 0.05)
+                end
+            end)
+            
+            textboxFrame.MouseLeave:Connect(function()
+                if Settings.Interaction.HoverEffects then
+                    tween(textboxFrame, {BackgroundTransparency = 0.05}, 0.2)
+                end
+            end)
+            
+            local methods = {}
+            function methods:SetText(text)
+                textboxInput.Text = text
+            end
+            
+            function methods:GetText()
+                return textboxInput.Text
+            end
+            
+            function methods:SetPlaceholder(text)
+                textboxInput.PlaceholderText = text
+            end
+            
+            table.insert(tab.Elements, textboxFrame)
+            return methods
+        end
+        
+        table.insert(self.Tabs, tab)
+        return tab
+    end
+    
+    function window:UpdateTheme(newTheme, oldTheme)
+        if not newTheme then newTheme = currentTheme end
+        
+        self.Theme = newTheme
+        
+        -- Update main window colors
+        tween(main, {BackgroundColor3 = newTheme.Colors.Background}, 0.3)
+        tween(topbar, {BackgroundColor3 = newTheme.Colors.Surface}, 0.3)
+        tween(sidebar, {BackgroundColor3 = newTheme.Colors.Surface}, 0.3)
+        tween(tabContent, {BackgroundColor3 = newTheme.Colors.Card}, 0.3)
+        
+        -- Update text colors
+        title.TextColor3 = newTheme.Colors.Text
+        
+        -- Update tab colors
+        for _, tab in pairs(self.Tabs) do
+            if tab.IsActive then
+                tween(tab.Button, {
+                    BackgroundColor3 = newTheme.Colors.Primary,
+                    TextColor3 = Color3.fromRGB(255, 255, 255)
+                }, 0.3)
+            else
+                tween(tab.Button, {
+                    BackgroundColor3 = newTheme.Colors.Card,
+                    TextColor3 = newTheme.Colors.Text
+                }, 0.3)
+            end
+        end
+        
+        print("Lieris: Window theme updated to " .. newTheme.Name)
+    end
+    
+    function window:Destroy()
+        if screenGui then
+            screenGui:Destroy()
+        end
+        
+        -- Remove from windows list
+        for i, w in ipairs(Lieris.Windows) do
+            if w == self then
+                table.remove(Lieris.Windows, i)
+                break
+            end
+        end
+    end
+    
+    function window:Hide()
+        screenGui.Enabled = false
+        playSound("Close")
+    end
+    
+    function window:Show()
+        screenGui.Enabled = true
+        playSound("Open")
+    end
+    
+    function window:Toggle()
+        if screenGui.Enabled then
+            self:Hide()
+        else
+            self:Show()
+        end
+    end
+    
+    -- Enhanced entrance animation
+    main.Size = UDim2.new(0, 0, 0, 0)
+    main.BackgroundTransparency = 1
+    main.Rotation = -5
+    
+    tween(main, {
+        Size = windowSize,
+        BackgroundTransparency = Settings.Design.GlassOpacity,
+        Rotation = 0
+    }, 0.6, "Back", "Out")
+    
+    playSound("Open")
+    
+    -- Add to windows list
+    table.insert(self.Windows, window)
+    
+    return window
+end
+
+-- Performance monitoring and optimization
+local function updatePerformance()
+    local currentTime = tick()
+    local frameTime = currentTime - Lieris.Performance.LastUpdate
+    
+    table.insert(Lieris.Performance.FrameTime, frameTime)
+    if #Lieris.Performance.FrameTime > 60 then
+        table.remove(Lieris.Performance.FrameTime, 1)
+    end
+    
+    Lieris.Performance.LastUpdate = currentTime
+    Lieris.Performance.ElementsRendered = 0
+    
+    -- Count rendered elements
+    for _, window in pairs(Lieris.Windows) do
+        for _, tab in pairs(window.Tabs) do
+            Lieris.Performance.ElementsRendered = Lieris.Performance.ElementsRendered + #tab.Elements
+        end
+    end
+    
+    -- Memory optimization
+    if Settings.Performance.MemoryOptimization then
+        -- Clean up completed tweens
+        for i = #ActiveTweens, 1, -1 do
+            local tween = ActiveTweens[i]
+            if tween.PlaybackState == Enum.PlaybackState.Completed then
+                table.remove(ActiveTweens, i)
+            end
+        end
+        
+        -- Update performance counter
+        Lieris.Performance.AnimationsActive = #ActiveTweens
+    end
+end
+
+-- Start performance monitoring
+RunService.Heartbeat:Connect(updatePerformance)
+
+-- Initialize the library
+detectDevice()
+Lieris.Initialized = true
+
+print("Lieris UI Library v3.0.0 loaded successfully!")
+print("Device:", Device.Type, "|", Device.Platform, "|", Device.ScreenSize.X.."x"..Device.ScreenSize.Y)
+print("Theme:", currentTheme.Name)
+print("Performance Mode:", Settings.Performance.QualityMode)
+print("Developer:", Lieris.Developer)
+print("Discord:", Lieris.Discord)
+
+return Lieris
