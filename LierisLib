@@ -115,10 +115,42 @@ end
 -- Advanced Animation System
 local function tween(instance, properties, duration, style, direction, callback)
     duration = duration or 0.4
-    style = style or Enum.EasingStyle.Quart
-    direction = direction or Enum.EasingDirection.Out
     
-    local tweenInfo = TweenInfo.new(duration, style, direction)
+    -- Convert string styles to Enum values safely
+    local easingStyle = Enum.EasingStyle.Quart
+    local easingDirection = Enum.EasingDirection.Out
+    
+    if style then
+        if type(style) == "string" then
+            if style == "Linear" then easingStyle = Enum.EasingStyle.Linear
+            elseif style == "Quad" then easingStyle = Enum.EasingStyle.Quad
+            elseif style == "Cubic" then easingStyle = Enum.EasingStyle.Cubic
+            elseif style == "Quart" then easingStyle = Enum.EasingStyle.Quart
+            elseif style == "Quint" then easingStyle = Enum.EasingStyle.Quint
+            elseif style == "Sine" then easingStyle = Enum.EasingStyle.Sine
+            elseif style == "Expo" then easingStyle = Enum.EasingStyle.Expo
+            elseif style == "Circ" then easingStyle = Enum.EasingStyle.Circ
+            elseif style == "Back" then easingStyle = Enum.EasingStyle.Back
+            elseif style == "Elastic" then easingStyle = Enum.EasingStyle.Elastic
+            elseif style == "Bounce" then easingStyle = Enum.EasingStyle.Bounce
+            end
+        else
+            easingStyle = style
+        end
+    end
+    
+    if direction then
+        if type(direction) == "string" then
+            if direction == "In" then easingDirection = Enum.EasingDirection.In
+            elseif direction == "Out" then easingDirection = Enum.EasingDirection.Out
+            elseif direction == "InOut" then easingDirection = Enum.EasingDirection.InOut
+            end
+        else
+            easingDirection = direction
+        end
+    end
+    
+    local tweenInfo = TweenInfo.new(duration, easingStyle, easingDirection)
     local tweenObj = Services.TweenService:Create(instance, tweenInfo, properties)
     
     if callback then
@@ -226,7 +258,7 @@ local function createParticles(parent, count, color, speed)
             Position = targetPos,
             BackgroundTransparency = 1,
             Size = UDim2.new(0, 0, 0, 0)
-        }, math.random(1, 3) / speed, "Quad", "Out", function()
+        }, math.random(1, 3) / speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, function()
             particle:Destroy()
         end)
     end
@@ -392,7 +424,7 @@ function Lieris:CreateNotification(config)
     end)
     
     -- Animate in
-    tween(notification, {Position = UDim2.new(0, 0, 0, 0)}, 0.5, "Back", "Out")
+    tween(notification, {Position = UDim2.new(0, 0, 0, 0)}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     
     -- Auto dismiss
     local duration = config.Duration or 5
@@ -402,7 +434,7 @@ function Lieris:CreateNotification(config)
             tween(notification, {
                 Position = UDim2.new(1, 0, 0, 0),
                 BackgroundTransparency = 1
-            }, 0.3, "Quad", "In", function()
+            }, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In, function()
                 notification:Destroy()
             end)
         end
@@ -596,14 +628,14 @@ local function createUltimateLoadingScreen()
     task.spawn(function()
         -- Animate container entrance
         container.Size = UDim2.new(0, 0, 0, 0)
-        tween(container, {Size = UDim2.new(0, scale(500), 0, scale(300))}, 0.8, "Back", "Out")
+        tween(container, {Size = UDim2.new(0, scale(500), 0, scale(300))}, 0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         
         task.wait(0.3)
         
         -- Animate logo
         logoFrame.Size = UDim2.new(0, 0, 0, 0)
-        tween(logoFrame, {Size = UDim2.new(0, scale(100), 0, scale(100))}, 0.6, "Back", "Out")
-        tween(logo, {TextTransparency = 0}, 0.8, "Quad", "Out")
+        tween(logoFrame, {Size = UDim2.new(0, scale(100), 0, scale(100))}, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        tween(logo, {TextTransparency = 0}, 0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         
         -- Spinning logo animation
         task.spawn(function()
@@ -619,13 +651,13 @@ local function createUltimateLoadingScreen()
         task.wait(0.4)
         
         -- Animate title with wave effect
-        tween(title, {TextTransparency = 0}, 1, "Quad", "Out")
+        tween(title, {TextTransparency = 0}, 1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         task.spawn(function()
             while title.Parent do
-                tween(title, {TextSize = scale(52)}, 2, "Sine", "InOut")
+                tween(title, {TextSize = scale(52)}, 2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
                 task.wait(2)
                 if title.Parent then
-                    tween(title, {TextSize = scale(48)}, 2, "Sine", "InOut")
+                    tween(title, {TextSize = scale(48)}, 2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
                     task.wait(2)
                 end
             end
@@ -634,12 +666,12 @@ local function createUltimateLoadingScreen()
         task.wait(0.3)
         
         -- Animate subtitle
-        tween(subtitle, {TextTransparency = 0}, 0.8, "Quad", "Out")
+        tween(subtitle, {TextTransparency = 0}, 0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         
         task.wait(0.3)
         
         -- Animate loading dots
-        tween(loadingDots, {TextTransparency = 0}, 0.6, "Quad", "Out")
+        tween(loadingDots, {TextTransparency = 0}, 0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         
         -- Animated loading text
         task.spawn(function()
@@ -667,9 +699,9 @@ local function createUltimateLoadingScreen()
             Size = UDim2.new(0, 0, 0, 0),
             Position = UDim2.new(0.5, 0, 0.2, 0),
             Rotation = -10
-        }, 0.7, "Back", "In")
+        }, 0.7, Enum.EasingStyle.Back, Enum.EasingDirection.In)
         
-        tween(background, {BackgroundTransparency = 1}, 0.7, "Quad", "In")
+        tween(background, {BackgroundTransparency = 1}, 0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
         
         task.wait(0.8)
         loadingGui:Destroy()
@@ -983,7 +1015,7 @@ function Lieris:CreateWindow(config)
             Size = UDim2.new(0, 0, 0, 0),
             Position = UDim2.new(0.5, 0, 0.3, 0),
             Rotation = 10
-        }, 0.5, "Back", "In", function()
+        }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In, function()
             screenGui.Enabled = false
         end)
     end
@@ -996,7 +1028,7 @@ function Lieris:CreateWindow(config)
             Size = windowSize,
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Rotation = 0
-        }, 0.6, "Back", "Out")
+        }, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     end
     
     function window:Toggle()
@@ -1258,7 +1290,7 @@ function Lieris:CreateWindow(config)
                 local targetColor = value and Lieris.Theme.Success or Lieris.Theme.Surface
                 
                 if animate then
-                    tween(switchKnob, {Position = targetPos}, 0.3, "Back", "Out")
+                    tween(switchKnob, {Position = targetPos}, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
                     tween(switchFrame, {BackgroundColor3 = targetColor}, 0.3)
                 else
                     switchKnob.Position = targetPos
@@ -1447,7 +1479,7 @@ function Lieris:CreateWindow(config)
     tween(main, {
         Size = windowSize,
         Rotation = 0
-    }, 0.8, "Back", "Out")
+    }, 0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     
     table.insert(self.Windows, window)
     Lieris.CurrentWindow = window
