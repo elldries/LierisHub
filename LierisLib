@@ -43,15 +43,15 @@ local Lieris = {
     CurrentWindow = nil,
     MobileToggleButton = nil,
     
-    -- Ultimate Theme (Blue/White/Black)
+    -- Улучшенная Ultimate Theme (Blue/White/Black)
     Theme = {
         Primary = Color3.fromRGB(59, 130, 246),      -- Beautiful Blue
         Secondary = Color3.fromRGB(99, 102, 241),     -- Purple Blue
         Accent = Color3.fromRGB(139, 92, 246),        -- Light Purple
         
-        Background = Color3.fromRGB(15, 23, 42),      -- Deep Dark Blue
-        Surface = Color3.fromRGB(30, 41, 59),         -- Dark Blue Surface
-        Card = Color3.fromRGB(51, 65, 85),            -- Blue Card
+        Background = Color3.fromRGB(18, 18, 27),      -- Dark но не совсем черный
+        Surface = Color3.fromRGB(30, 30, 45),         -- Темно-серый поверхность
+        Card = Color3.fromRGB(45, 45, 60),            -- Темно-серая карточка
         
         Text = Color3.fromRGB(248, 250, 252),         -- Pure White Text
         TextSecondary = Color3.fromRGB(203, 213, 225), -- Light Gray
@@ -64,7 +64,12 @@ local Lieris = {
         
         Shadow = Color3.fromRGB(0, 0, 0),
         Border = Color3.fromRGB(100, 116, 139),
-        Glow = Color3.fromRGB(59, 130, 246)
+        Glow = Color3.fromRGB(59, 130, 246),
+        
+        -- Настройки прозрачности (0 = непрозрачный)
+        BackgroundTransparency = 0,
+        SurfaceTransparency = 0,
+        CardTransparency = 0
     },
     
     Device = {
@@ -455,15 +460,16 @@ local function createMobileToggle()
     
     local toggleButton = Instance.new("TextButton")
     toggleButton.Name = "ToggleButton"
-    toggleButton.Size = UDim2.new(0, scale(60), 0, scale(60))
-    toggleButton.Position = UDim2.new(1, -scale(80), 0, scale(20))
+    -- Делаем кнопку шире для ON/OFF текста
+    toggleButton.Size = UDim2.new(0, scale(100), 0, scale(60))
+    toggleButton.Position = UDim2.new(1, -scale(110), 0, scale(20))
     toggleButton.BackgroundColor3 = Lieris.Theme.Primary
-    toggleButton.BackgroundTransparency = 0.1
+    toggleButton.BackgroundTransparency = Lieris.Theme.BackgroundTransparency or 0
     toggleButton.BorderSizePixel = 0
     toggleButton.Font = Enum.Font.GothamBold
-    toggleButton.Text = "L"
+    toggleButton.Text = "ON/OFF"  -- Меняем текст с "L" на "ON/OFF"
     toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleButton.TextSize = scale(24)
+    toggleButton.TextSize = scale(18)  -- Делаем текст меньше, чтобы он поместился
     toggleButton.ZIndex = 1000
     toggleButton.Parent = screenGui
     
@@ -1011,24 +1017,51 @@ function Lieris:CreateWindow(config)
     
     -- Window methods
     function window:Hide()
+        -- Меняем поведение - показываем только небольшую панельку слева
         tween(main, {
-            Size = UDim2.new(0, 0, 0, 0),
-            Position = UDim2.new(0.5, 0, 0.3, 0),
-            Rotation = 10
-        }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In, function()
-            screenGui.Enabled = false
-        end)
+            -- Сжимаем интерфейс только по горизонтали, оставляя вертикальный размер
+            Size = UDim2.new(0, scale(60), windowSize.Y.Scale, windowSize.Y.Offset),
+            -- Перемещаем к левому краю экрана, оставляя панельку
+            Position = UDim2.new(0, scale(30), 0.5, 0),
+            -- Отключаем вращение
+            Rotation = 0
+        }, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        
+        -- Скрываем содержимое окна, оставляя только основную панель
+        if tabHolder then
+            tabHolder.Visible = false
+        end
+        
+        -- Меняем цвет основной панели, чтобы было видно, что она свернута
+        local bgColor = mainContainer and mainContainer.BackgroundColor3
+        if mainContainer then
+            tween(mainContainer, {
+                BackgroundColor3 = Lieris.Theme.Primary
+            }, 0.3)
+        end
     end
     
     function window:Show()
         screenGui.Enabled = true
-        main.Size = UDim2.new(0, 0, 0, 0)
-        main.Rotation = -10
+        
+        -- Плавно возвращаем окно к полному размеру без вращения
         tween(main, {
             Size = windowSize,
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Rotation = 0
-        }, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        }, 0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        
+        -- Показываем содержимое окна
+        if tabHolder then
+            tabHolder.Visible = true
+        end
+        
+        -- Возвращаем исходный цвет
+        if mainContainer then
+            tween(mainContainer, {
+                BackgroundColor3 = Lieris.Theme.Surface
+            }, 0.3)
+        end
     end
     
     function window:Toggle()
