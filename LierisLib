@@ -76,7 +76,7 @@ local Lieris = {
         OverlayTransparency = 0,
         
         -- Задержка появления GUI (в секундах)
-        InterfaceDelay = 0.5
+        InterfaceDelay = 2.0
     },
     
     Device = {
@@ -554,7 +554,7 @@ local function createUltimateLoadingScreen()
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.BackgroundColor3 = Lieris.Theme.Surface
-    container.BackgroundTransparency = 0.05
+    container.BackgroundTransparency = 0
     container.BorderSizePixel = 0
     container.Parent = background
     
@@ -571,7 +571,7 @@ local function createUltimateLoadingScreen()
     logoFrame.Position = UDim2.new(0.5, 0, 0, scale(40))
     logoFrame.AnchorPoint = Vector2.new(0.5, 0)
     logoFrame.BackgroundColor3 = Lieris.Theme.Primary
-    logoFrame.BackgroundTransparency = 0.1
+    logoFrame.BackgroundTransparency = 0
     logoFrame.BorderSizePixel = 0
     logoFrame.Parent = container
     
@@ -651,15 +651,8 @@ local function createUltimateLoadingScreen()
         tween(logo, {TextTransparency = 0}, 0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         
         -- Spinning logo animation
-        task.spawn(function()
-            while logo.Parent do
-                tween(logoFrame, {Rotation = 360}, 4, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-                task.wait(4)
-                if logoFrame.Parent then
-                    logoFrame.Rotation = 0
-                end
-            end
-        end)
+        -- Logo rotation animation disabled
+        -- Logo will remain static without rotation
         
         task.wait(0.4)
         
@@ -828,15 +821,8 @@ function Lieris:CreateWindow(config)
     logoText.Parent = logoFrame
     
     -- Spinning logo animation
-    task.spawn(function()
-        while logoFrame.Parent do
-            tween(logoFrame, {Rotation = 360}, 8, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-            task.wait(8)
-            if logoFrame.Parent then
-                logoFrame.Rotation = 0
-            end
-        end
-    end)
+    -- Logo rotation animation disabled for cleaner look
+    -- Static logo without spinning animation
     
     -- Title text
     local title = Instance.new("TextLabel")
@@ -1052,6 +1038,17 @@ function Lieris:CreateWindow(config)
                 BackgroundTransparency = 1 -- Делаем контейнер прозрачным
             }, 0.2)
         end
+        
+        self.Visible = false
+        
+        if Lieris.MobileToggleButton then
+            -- Полностью скрываем мобильную кнопку при сворачивании
+            tween(Lieris.MobileToggleButton, {
+                BackgroundTransparency = 1,
+                TextTransparency = 1,
+                Size = UDim2.new(0, 0, 0, 0)
+            }, 0.3)
+        end
     end
     
     function window:Show()
@@ -1082,6 +1079,17 @@ function Lieris:CreateWindow(config)
             mainContainer.BackgroundTransparency = Lieris.Theme.SurfaceTransparency or 0
             tween(mainContainer, {
                 BackgroundColor3 = Lieris.Theme.Surface
+            }, 0.3)
+        end
+        
+        self.Visible = true
+        
+        if Lieris.MobileToggleButton then
+            -- Возвращаем мобильную кнопку при разворачивании
+            tween(Lieris.MobileToggleButton, {
+                BackgroundTransparency = Lieris.Theme.BackgroundTransparency or 0,
+                TextTransparency = 0,
+                Size = UDim2.new(0, scale(100), 0, scale(60))
             }, 0.3)
         end
     end
