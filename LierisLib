@@ -771,7 +771,7 @@ function Lieris:CreateWindow(config)
     main.Parent = screenGui
     
     createCorner(main, 24)  -- Увеличенные закругления для современности
-    createStroke(main, Color3.fromRGB(59, 130, 246), 2, 0.4)  -- Более заметная синяя граница
+    createStroke(main, Color3.fromRGB(59, 130, 246), 3, 0.2)  -- Яркая толстая синяя граница
     
     -- Remove blur effect to prevent background blurring
     -- blur effect removed for better visibility
