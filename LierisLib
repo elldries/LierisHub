@@ -766,19 +766,19 @@ function Lieris:CreateWindow(config)
     -- Remove blur effect to prevent background blurring
     -- blur effect removed for better visibility
     
-    -- СИНИЙ градиент как вы просили! 💙
+    -- ПОТРЯСАЮЩИЙ СИНИЙ-ГОЛУБОЙ градиент! 🌊💙
     createGradient(main, ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(59, 130, 246)),     -- Яркий синий
-        ColorSequenceKeypoint.new(0.2, Color3.fromRGB(99, 102, 241)),   -- Глубокий синий
-        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(59, 130, 246)),   -- Средний синий
-        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(99, 102, 241)),   -- Темный синий
-        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(59, 130, 246)),   -- Светлый синий
+        ColorSequenceKeypoint.new(0.2, Color3.fromRGB(14, 165, 233)),   -- Небесно-голубой
+        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(56, 189, 248)),   -- Светло-голубой
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(99, 102, 241)),   -- Фиолетово-синий
+        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(14, 165, 233)),   -- Возврат к голубому
         ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 45))        -- Темная база
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.05),
-        NumberSequenceKeypoint.new(0.3, 0.1),
-        NumberSequenceKeypoint.new(0.7, 0.15),
-        NumberSequenceKeypoint.new(1, 0.2)
+        NumberSequenceKeypoint.new(0, 0.02),
+        NumberSequenceKeypoint.new(0.3, 0.05),
+        NumberSequenceKeypoint.new(0.7, 0.08),
+        NumberSequenceKeypoint.new(1, 0.12)
     }, 135)
     
     -- СЛОЙ СИЯНИЯ ✨
@@ -786,21 +786,21 @@ function Lieris:CreateWindow(config)
     glowOverlay.Name = "GlowOverlay"
     glowOverlay.Size = UDim2.new(1, 0, 1, 0)
     glowOverlay.Position = UDim2.new(0, 0, 0, 0)
-    glowOverlay.BackgroundTransparency = 0.3  -- Делаем сияние более видимым!
+    glowOverlay.BackgroundTransparency = 0.1  -- ОЧЕНЬ ВИДИМОЕ СИЯНИЕ! ✨
     glowOverlay.BorderSizePixel = 0
     glowOverlay.ZIndex = main.ZIndex + 1
     glowOverlay.Parent = main
     
     createCorner(glowOverlay, 20)
     createGradient(glowOverlay, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),    -- Белое сияние
-        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(59, 130, 246)),   -- Синее сияние
-        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(139, 92, 246)),   -- Фиолетовое сияние
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(168, 85, 247))      -- Яркое фиолетовое сияние
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(56, 189, 248)),     -- Яркий голубой
+        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(14, 165, 233)),   -- Небесно-голубой  
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(59, 130, 246)),   -- Синий
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(99, 102, 241))      -- Глубокий синий
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.9),
-        NumberSequenceKeypoint.new(0.5, 0.95),
-        NumberSequenceKeypoint.new(1, 0.98)
+        NumberSequenceKeypoint.new(0, 0.7),
+        NumberSequenceKeypoint.new(0.5, 0.8),
+        NumberSequenceKeypoint.new(1, 0.9)
     }, 45)
     
     -- Ultimate title bar
@@ -845,16 +845,12 @@ function Lieris:CreateWindow(config)
     logoText.Size = UDim2.new(1, 0, 1, 0)
     logoText.BackgroundTransparency = 1
     logoText.Font = Enum.Font.GothamBold
-    -- Заменяем на ImageLabel для использования ID логотипа
-    logoText:Destroy()
-    
-    local logoImage = Instance.new("ImageLabel")
-    logoImage.Name = "LogoImage"
-    logoImage.Size = UDim2.new(1, 0, 1, 0)
-    logoImage.BackgroundTransparency = 1
-    logoImage.Image = "rbxassetid://83018356787548"  -- Ваш логотип!
-    logoImage.ScaleType = Enum.ScaleType.Fit
-    logoImage.Parent = logoFrame
+    logoText.Text = "Li"  -- Красивый текстовый логотип Li
+    logoText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    logoText.TextSize = scale(28)
+    logoText.TextXAlignment = Enum.TextXAlignment.Center
+    logoText.TextYAlignment = Enum.TextYAlignment.Center
+    logoText.Parent = logoFrame
     
     -- Добавляем градиент к логотипу
     createGradient(logoFrame, ColorSequence.new{
@@ -915,17 +911,18 @@ function Lieris:CreateWindow(config)
     discordBtn.BackgroundTransparency = 0
     discordBtn.BorderSizePixel = 0
     discordBtn.Font = Enum.Font.GothamBold
-    discordBtn.Text = ""  -- Убираем текст для иконки
+    discordBtn.Text = "Discord"  -- Полноценная Discord кнопка
+    discordBtn.TextSize = scale(12)  -- Меньший размер текста
     
-    -- Добавляем ImageLabel для Discord иконки
-    local discordIcon = Instance.new("ImageLabel")
-    discordIcon.Name = "DiscordIcon"
-    discordIcon.Size = UDim2.new(0.8, 0, 0.8, 0)
-    discordIcon.Position = UDim2.new(0.1, 0, 0.1, 0)
-    discordIcon.BackgroundTransparency = 1
-    discordIcon.Image = "rbxassetid://10367063084"  -- Ваша Discord иконка!
-    discordIcon.ScaleType = Enum.ScaleType.Fit
-    discordIcon.Parent = discordBtn
+    -- Добавляем градиент к Discord кнопке
+    createGradient(discordBtn, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(88, 101, 242)),     -- Discord синий
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(59, 130, 246)),   -- Светло-синий
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(99, 102, 241))      -- Глубокий синий
+    }, NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.1),
+        NumberSequenceKeypoint.new(1, 0.3)
+    }, 45)
     discordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     discordBtn.TextSize = scale(16)
     discordBtn.Parent = controlsFrame
@@ -937,122 +934,18 @@ function Lieris:CreateWindow(config)
         createParticles(discordBtn, 6, Color3.fromRGB(88, 101, 242), 2)
     end)
     
-    -- Minimize button
-    local minimizeBtn = Instance.new("TextButton")
-    minimizeBtn.Name = "MinimizeButton"
-    minimizeBtn.Size = UDim2.new(0, scale(35), 0, scale(35))
-    minimizeBtn.Position = UDim2.new(0, scale(42), 0, 0)
-    minimizeBtn.BackgroundColor3 = Lieris.Theme.Warning
-    minimizeBtn.BackgroundTransparency = 0
-    minimizeBtn.BorderSizePixel = 0
-    minimizeBtn.Font = Enum.Font.GothamBold
-    minimizeBtn.Text = "🔽"  -- Иконка стрелки вниз для сворачивания
-    minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    minimizeBtn.TextSize = scale(16)
-    minimizeBtn.Parent = controlsFrame
-    
-    createCorner(minimizeBtn, 10)
-    
-    minimizeBtn.MouseButton1Click:Connect(function()
-        window.IsMinimized = not window.IsMinimized
-        local targetSize = window.IsMinimized and 
-            UDim2.new(windowSize.X.Scale, windowSize.X.Offset, 0, scale(70)) or 
-            windowSize
-        
-        -- Скрываем кнопки управления И табы при сворачивании
-        if window.IsMinimized then
-            -- Скрываем кнопки управления
-            tween(controlsFrame, {
-                BackgroundTransparency = 1,
-                Size = UDim2.new(0, 0, 0, 0)
-            }, 0.3)
-            -- Скрываем все дочерние кнопки управления
-            for _, child in pairs(controlsFrame:GetChildren()) do
-                if child:IsA("TextButton") then
-                    tween(child, {
-                        BackgroundTransparency = 1,
-                        TextTransparency = 1
-                    }, 0.3)
-                end
-            end
-            
-            -- ГЛАВНОЕ: Скрываем табы (Main, Info и т.д.)
-            if tabHolder then
-                tween(tabHolder, {
-                    Size = UDim2.new(0, 0, 1, 0),
-                    BackgroundTransparency = 1
-                }, 0.3)
-                -- Скрываем все кнопки табов
-                for _, tabBtn in pairs(tabHolder:GetChildren()) do
-                    if tabBtn:IsA("TextButton") then
-                        tween(tabBtn, {
-                            BackgroundTransparency = 1,
-                            TextTransparency = 1,
-                            Size = UDim2.new(0, 0, 0, 0)
-                        }, 0.3)
-                    end
-                end
-            end
-            
-            -- Скрываем содержимое
-            if content then
-                tween(content, {BackgroundTransparency = 1}, 0.3)
-            end
-            
-        else
-            -- Показываем кнопки управления
-            tween(controlsFrame, {
-                BackgroundTransparency = 0,
-                Size = UDim2.new(0, scale(120), 0, scale(40))
-            }, 0.3)
-            -- Показываем все дочерние кнопки управления
-            for _, child in pairs(controlsFrame:GetChildren()) do
-                if child:IsA("TextButton") then
-                    tween(child, {
-                        BackgroundTransparency = 0,
-                        TextTransparency = 0
-                    }, 0.3)
-                end
-            end
-            
-            -- Показываем табы обратно
-            if tabHolder then
-                tween(tabHolder, {
-                    Size = UDim2.new(0, scale(200), 1, 0),
-                    BackgroundTransparency = 0
-                }, 0.3)
-                -- Показываем все кнопки табов
-                for _, tabBtn in pairs(tabHolder:GetChildren()) do
-                    if tabBtn:IsA("TextButton") then
-                        tween(tabBtn, {
-                            BackgroundTransparency = 0,
-                            TextTransparency = 0,
-                            Size = UDim2.new(1, -scale(20), 0, scale(50))
-                        }, 0.3)
-                    end
-                end
-            end
-            
-            -- Показываем содержимое
-            if content then
-                tween(content, {BackgroundTransparency = 0}, 0.3)
-            end
-        end
-        
-        tween(main, {Size = targetSize}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-        createParticles(minimizeBtn, 4, Lieris.Theme.Warning, 2)
-    end)
+    -- Убираем кнопку сворачивания для избежания проблем
     
     -- Close button
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "CloseButton"
     closeBtn.Size = UDim2.new(0, scale(35), 0, scale(35))
-    closeBtn.Position = UDim2.new(0, scale(84), 0, 0)
+    closeBtn.Position = UDim2.new(0, scale(42), 0, 0)  -- Перемещаем ближе, так как убрали minimize
     closeBtn.BackgroundColor3 = Lieris.Theme.Error
     closeBtn.BackgroundTransparency = 0
     closeBtn.BorderSizePixel = 0
     closeBtn.Font = Enum.Font.GothamBold
-    closeBtn.Text = "✕"  -- Белый крестик для лучшего контраста
+    closeBtn.Text = "X"  -- Простой белый X
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeBtn.TextSize = scale(16)
     closeBtn.Parent = controlsFrame
