@@ -756,7 +756,7 @@ function Lieris:CreateWindow(config)
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.AnchorPoint = Vector2.new(0.5, 0.5)
     main.BackgroundColor3 = Lieris.Theme.Background
-    main.BackgroundTransparency = 0.05
+    main.BackgroundTransparency = 0
     main.BorderSizePixel = 0
     main.Parent = screenGui
     
@@ -766,34 +766,68 @@ function Lieris:CreateWindow(config)
     -- Remove blur effect to prevent background blurring
     -- blur effect removed for better visibility
     
-    -- Dynamic gradient overlay
+    -- ПОТРЯСАЮЩИЙ градиент с множественными переходами! 🌈
     createGradient(main, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Lieris.Theme.Primary),
-        ColorSequenceKeypoint.new(0.3, Lieris.Theme.Secondary),
-        ColorSequenceKeypoint.new(0.7, Lieris.Theme.Accent),
-        ColorSequenceKeypoint.new(1, Lieris.Theme.Background)
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(59, 130, 246)),     -- Яркий синий
+        ColorSequenceKeypoint.new(0.15, Color3.fromRGB(99, 102, 241)),  -- Фиолетово-синий
+        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(139, 92, 246)),   -- Светло-фиолетовый
+        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(168, 85, 247)),  -- Яркий фиолетовый
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(236, 72, 153)),   -- Розово-фиолетовый
+        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(59, 130, 246)),  -- Возврат к синему
+        ColorSequenceKeypoint.new(0.9, Color3.fromRGB(34, 197, 94)),    -- Зеленое сияние
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 45))        -- Темная база
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.85),
+        NumberSequenceKeypoint.new(0, 0.05),
+        NumberSequenceKeypoint.new(0.25, 0.1),
+        NumberSequenceKeypoint.new(0.5, 0.15),
+        NumberSequenceKeypoint.new(0.75, 0.2),
+        NumberSequenceKeypoint.new(1, 0.25)
+    }, 135)
+    
+    -- СЛОЙ СИЯНИЯ ✨
+    local glowOverlay = Instance.new("Frame")
+    glowOverlay.Name = "GlowOverlay"
+    glowOverlay.Size = UDim2.new(1, 0, 1, 0)
+    glowOverlay.Position = UDim2.new(0, 0, 0, 0)
+    glowOverlay.BackgroundTransparency = 0.7
+    glowOverlay.BorderSizePixel = 0
+    glowOverlay.ZIndex = main.ZIndex + 1
+    glowOverlay.Parent = main
+    
+    createCorner(glowOverlay, 20)
+    createGradient(glowOverlay, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),    -- Белое сияние
+        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(59, 130, 246)),   -- Синее сияние
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(139, 92, 246)),   -- Фиолетовое сияние
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(168, 85, 247))      -- Яркое фиолетовое сияние
+    }, NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.9),
         NumberSequenceKeypoint.new(0.5, 0.95),
         NumberSequenceKeypoint.new(1, 0.98)
-    }, 135)
+    }, 45)
     
     -- Ultimate title bar
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
     titleBar.Size = UDim2.new(1, 0, 0, scale(70))
     titleBar.BackgroundColor3 = Lieris.Theme.Surface
-    titleBar.BackgroundTransparency = 0.1
+    titleBar.BackgroundTransparency = 0
     titleBar.BorderSizePixel = 0
     titleBar.Parent = main
     
     createCorner(titleBar, 20)
     createGradient(titleBar, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Lieris.Theme.Primary),
-        ColorSequenceKeypoint.new(1, Lieris.Theme.Secondary)
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(59, 130, 246)),     -- Яркий синий
+        ColorSequenceKeypoint.new(0.2, Color3.fromRGB(99, 102, 241)),   -- Фиолетово-синий  
+        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(139, 92, 246)),   -- Светло-фиолетовый
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(168, 85, 247)),   -- Яркий фиолетовый
+        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(236, 72, 153)),   -- Розово-фиолетовый
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(59, 130, 246))      -- Возврат к синему
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.8),
-        NumberSequenceKeypoint.new(1, 0.9)
+        NumberSequenceKeypoint.new(0, 0.05),
+        NumberSequenceKeypoint.new(0.3, 0.08),
+        NumberSequenceKeypoint.new(0.7, 0.12),
+        NumberSequenceKeypoint.new(1, 0.15)
     }, 90)
     
     -- Logo in title bar
@@ -802,23 +836,34 @@ function Lieris:CreateWindow(config)
     logoFrame.Size = UDim2.new(0, scale(50), 0, scale(50))
     logoFrame.Position = UDim2.new(0, scale(15), 0, scale(10))
     logoFrame.BackgroundColor3 = Lieris.Theme.Primary
-    logoFrame.BackgroundTransparency = 0.2
+    logoFrame.BackgroundTransparency = 0
     logoFrame.BorderSizePixel = 0
     logoFrame.Parent = titleBar
     
     createCorner(logoFrame, 15)
     
+    -- КРАСИВЫЙ ЛОГОТИП ВМЕСТО ПРОСТОЙ БУКВЫ! ⭐
     local logoText = Instance.new("TextLabel")
     logoText.Name = "LogoText"
     logoText.Size = UDim2.new(1, 0, 1, 0)
     logoText.BackgroundTransparency = 1
     logoText.Font = Enum.Font.GothamBold
-    logoText.Text = "L"
+    logoText.Text = "⚡"  -- Молния как символ мощи!
     logoText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    logoText.TextSize = scale(28)
+    logoText.TextSize = scale(32)
     logoText.TextXAlignment = Enum.TextXAlignment.Center
     logoText.TextYAlignment = Enum.TextYAlignment.Center
     logoText.Parent = logoFrame
+    
+    -- Добавляем градиент к логотипу
+    createGradient(logoFrame, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(59, 130, 246)),     -- Синий
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(139, 92, 246)),   -- Фиолетовый
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(236, 72, 153))      -- Розовый
+    }, NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.1),
+        NumberSequenceKeypoint.new(1, 0.3)
+    }, 45)
     
     -- Spinning logo animation
     -- Logo rotation animation disabled for cleaner look
@@ -866,10 +911,10 @@ function Lieris:CreateWindow(config)
     discordBtn.Size = UDim2.new(0, scale(35), 0, scale(35))
     discordBtn.Position = UDim2.new(0, 0, 0, 0)
     discordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-    discordBtn.BackgroundTransparency = 0.1
+    discordBtn.BackgroundTransparency = 0
     discordBtn.BorderSizePixel = 0
     discordBtn.Font = Enum.Font.GothamBold
-    discordBtn.Text = "D"
+    discordBtn.Text = "🎮"  -- Иконка геймпада для Discord
     discordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     discordBtn.TextSize = scale(16)
     discordBtn.Parent = controlsFrame
@@ -887,10 +932,10 @@ function Lieris:CreateWindow(config)
     minimizeBtn.Size = UDim2.new(0, scale(35), 0, scale(35))
     minimizeBtn.Position = UDim2.new(0, scale(42), 0, 0)
     minimizeBtn.BackgroundColor3 = Lieris.Theme.Warning
-    minimizeBtn.BackgroundTransparency = 0.1
+    minimizeBtn.BackgroundTransparency = 0
     minimizeBtn.BorderSizePixel = 0
     minimizeBtn.Font = Enum.Font.GothamBold
-    minimizeBtn.Text = "─"
+    minimizeBtn.Text = "🔽"  -- Иконка стрелки вниз для сворачивания
     minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     minimizeBtn.TextSize = scale(16)
     minimizeBtn.Parent = controlsFrame
@@ -903,6 +948,37 @@ function Lieris:CreateWindow(config)
             UDim2.new(windowSize.X.Scale, windowSize.X.Offset, 0, scale(70)) or 
             windowSize
         
+        -- Скрываем кнопки управления при сворачивании
+        if window.IsMinimized then
+            tween(controlsFrame, {
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0, 0, 0, 0)
+            }, 0.3)
+            -- Скрываем все дочерние кнопки
+            for _, child in pairs(controlsFrame:GetChildren()) do
+                if child:IsA("TextButton") then
+                    tween(child, {
+                        BackgroundTransparency = 1,
+                        TextTransparency = 1
+                    }, 0.3)
+                end
+            end
+        else
+            tween(controlsFrame, {
+                BackgroundTransparency = 0,
+                Size = UDim2.new(0, scale(120), 0, scale(40))
+            }, 0.3)
+            -- Показываем все дочерние кнопки
+            for _, child in pairs(controlsFrame:GetChildren()) do
+                if child:IsA("TextButton") then
+                    tween(child, {
+                        BackgroundTransparency = 0,
+                        TextTransparency = 0
+                    }, 0.3)
+                end
+            end
+        end
+        
         tween(main, {Size = targetSize}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         createParticles(minimizeBtn, 4, Lieris.Theme.Warning, 2)
     end)
@@ -913,10 +989,10 @@ function Lieris:CreateWindow(config)
     closeBtn.Size = UDim2.new(0, scale(35), 0, scale(35))
     closeBtn.Position = UDim2.new(0, scale(84), 0, 0)
     closeBtn.BackgroundColor3 = Lieris.Theme.Error
-    closeBtn.BackgroundTransparency = 0.1
+    closeBtn.BackgroundTransparency = 0
     closeBtn.BorderSizePixel = 0
     closeBtn.Font = Enum.Font.GothamBold
-    closeBtn.Text = "✕"
+    closeBtn.Text = "❌"  -- Красивая иконка закрытия
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeBtn.TextSize = scale(16)
     closeBtn.Parent = controlsFrame
@@ -970,11 +1046,15 @@ function Lieris:CreateWindow(config)
     
     titleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            -- Только разрешаем перетаскивание, не разворачиваем окно
             dragging = true
             dragStart = input.Position
             startPos = main.Position
             
-            tween(main, {Size = main.Size + UDim2.new(0, scale(5), 0, scale(5))}, 0.1)
+            -- Не изменяем размер при перетаскивании свернутого окна
+            if not window.IsMinimized then
+                tween(main, {Size = main.Size + UDim2.new(0, scale(5), 0, scale(5))}, 0.1)
+            end
         end
     end)
     
@@ -994,7 +1074,11 @@ function Lieris:CreateWindow(config)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             if dragging then
                 dragging = false
-                tween(main, {Size = windowSize}, 0.2)
+                -- Возвращаем правильный размер в зависимости от состояния окна
+                local targetSize = window.IsMinimized and 
+                    UDim2.new(windowSize.X.Scale, windowSize.X.Offset, 0, scale(70)) or 
+                    windowSize
+                tween(main, {Size = targetSize}, 0.2)
             end
         end
     end)
