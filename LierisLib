@@ -765,64 +765,56 @@ function Lieris:CreateWindow(config)
     main.Size = windowSize
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.AnchorPoint = Vector2.new(0.5, 0.5)
-    main.BackgroundColor3 = Lieris.Theme.Background
-    main.BackgroundTransparency = 0
+    main.BackgroundColor3 = Color3.fromRGB(20, 25, 45)  -- Темная основа
+    main.BackgroundTransparency = 0.3  -- Полупрозрачность для современного вида
     main.BorderSizePixel = 0
     main.Parent = screenGui
     
     createCorner(main, 20)
-    createStroke(main, Lieris.Theme.Primary, 3, 0.3)
+    createStroke(main, Color3.fromRGB(100, 150, 255), 2, 0.6)  -- Тонкая полупрозрачная граница
     
     -- Remove blur effect to prevent background blurring
     -- blur effect removed for better visibility
     
-    -- НЕВЕРОЯТНЫЙ ГЛАВНЫЙ ГРАДИЕНТ! 🌟💎
+    -- НОВЫЙ ПОЛУПРОЗРАЧНЫЙ ДИЗАЙН GUI ✨💎
     createGradient(main, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 20, 40)),       -- Глубокий индиго
-        ColorSequenceKeypoint.new(0.15, Color3.fromRGB(30, 45, 80)),    -- Темно-синий
-        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(50, 80, 140)),    -- Синий
-        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(70, 120, 200)),  -- Яркий синий
-        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(90, 150, 220)),   -- Светло-синий
-        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(60, 100, 180)),  -- Средний синий
-        ColorSequenceKeypoint.new(0.9, Color3.fromRGB(35, 55, 100)),    -- Возврат к темному
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 25, 50))        -- Финальный темный
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 30, 50)),       -- Мягкий темно-синий
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 50, 80)),     -- Средний синий
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 35, 60))        -- Завершающий синий
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.02),
-        NumberSequenceKeypoint.new(0.4, 0.06),
-        NumberSequenceKeypoint.new(0.7, 0.04),
-        NumberSequenceKeypoint.new(1, 0.08)
-    }, 160)
+        NumberSequenceKeypoint.new(0, 0.15),    -- Больше прозрачности для glassmorphism
+        NumberSequenceKeypoint.new(0.5, 0.20),  -- Еще больше прозрачности
+        NumberSequenceKeypoint.new(1, 0.18)     -- Легкая непрозрачность на краях
+    }, 45)  -- Диагональный градиент под 45°
     
-    -- СЛОЙ СИЯНИЯ ✨
-    local glowOverlay = Instance.new("Frame")
-    glowOverlay.Name = "GlowOverlay"
-    glowOverlay.Size = UDim2.new(1, 0, 1, 0)
-    glowOverlay.Position = UDim2.new(0, 0, 0, 0)
-    glowOverlay.BackgroundTransparency = 0.1  -- ОЧЕНЬ ВИДИМОЕ СИЯНИЕ! ✨
-    glowOverlay.BorderSizePixel = 0
-    glowOverlay.ZIndex = main.ZIndex + 1
-    glowOverlay.Parent = main
+    -- ЭЛЕГАНТНЫЙ ПОЛУПРОЗРАЧНЫЙ ОВЕРЛЕЙ 🌟
+    local glassOverlay = Instance.new("Frame")
+    glassOverlay.Name = "GlassOverlay"
+    glassOverlay.Size = UDim2.new(1, 0, 1, 0)
+    glassOverlay.Position = UDim2.new(0, 0, 0, 0)
+    glassOverlay.BackgroundTransparency = 0.4  -- Полупрозрачность для glassmorphism
+    glassOverlay.BorderSizePixel = 0
+    glassOverlay.ZIndex = main.ZIndex + 1
+    glassOverlay.Parent = main
     
-    createCorner(glowOverlay, 20)
-    createGradient(glowOverlay, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(56, 189, 248)),     -- Яркий голубой
-        ColorSequenceKeypoint.new(0.2, Color3.fromRGB(14, 165, 233)),   -- Небесно-голубой  
-        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(139, 92, 246)),   -- Фиолетовый
-        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(236, 72, 153)),   -- Розовый
-        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(251, 191, 36)),   -- Золотой
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(59, 130, 246))      -- Возврат к синему
+    createCorner(glassOverlay, 20)
+    createGradient(glassOverlay, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),    -- Белый
+        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(200, 220, 255)),  -- Светло-голубой
+        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(180, 200, 250)),  -- Мягкий голубой
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(220, 230, 255))     -- Почти белый
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.6),
-        NumberSequenceKeypoint.new(0.5, 0.7),
-        NumberSequenceKeypoint.new(1, 0.8)
-    }, 90)  -- Прямой вертикальный градиент для максимального эффекта
+        NumberSequenceKeypoint.new(0, 0.85),   -- Очень прозрачный белый
+        NumberSequenceKeypoint.new(0.5, 0.90), -- Максимальная прозрачность
+        NumberSequenceKeypoint.new(1, 0.87)    -- Легкое усиление
+    }, 135)  -- Диагональный glassmorphism эффект
     
-    -- Ultimate title bar
+    -- СОВРЕМЕННЫЙ ПОЛУПРОЗРАЧНЫЙ TITLE BAR 🎨
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
     titleBar.Size = UDim2.new(1, 0, 0, scale(70))
-    titleBar.BackgroundColor3 = Lieris.Theme.Surface
-    titleBar.BackgroundTransparency = 0
+    titleBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)  -- Белая основа
+    titleBar.BackgroundTransparency = 0.85  -- Очень прозрачный для glassmorphism
     titleBar.BorderSizePixel = 0
     titleBar.Parent = main
     
@@ -882,7 +874,7 @@ function Lieris:CreateWindow(config)
     -- Logo rotation animation disabled for cleaner look
     -- Static logo without spinning animation
     
-    -- Title text
+    -- СОВРЕМЕННЫЙ ЗАГОЛОВОК
     local title = Instance.new("TextLabel")
     title.Name = "Title"
     title.Position = UDim2.new(0, scale(80), 0, scale(10))
@@ -890,13 +882,15 @@ function Lieris:CreateWindow(config)
     title.BackgroundTransparency = 1
     title.Font = Enum.Font.GothamBold
     title.Text = config.Name or "Lieris Ultimate"
-    title.TextColor3 = Lieris.Theme.Text
+    title.TextColor3 = Color3.fromRGB(30, 40, 70)  -- Темно-синий для контраста
     title.TextSize = scale(20)
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.TextYAlignment = Enum.TextYAlignment.Center
+    title.TextStrokeTransparency = 0.8  -- Тень для лучшей читаемости
+    title.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
     title.Parent = titleBar
     
-    -- Subtitle
+    -- СТИЛЬНЫЙ ПОДЗАГОЛОВОК
     local subtitle = Instance.new("TextLabel")
     subtitle.Name = "Subtitle"
     subtitle.Position = UDim2.new(0, scale(80), 0, scale(40))
@@ -904,10 +898,12 @@ function Lieris:CreateWindow(config)
     subtitle.BackgroundTransparency = 1
     subtitle.Font = Enum.Font.Gotham
     subtitle.Text = "Ultimate UI Library v4.0 • by elldries"
-    subtitle.TextColor3 = Lieris.Theme.TextSecondary
+    subtitle.TextColor3 = Color3.fromRGB(70, 90, 130)  -- Мягкий синий
     subtitle.TextSize = scale(12)
     subtitle.TextXAlignment = Enum.TextXAlignment.Left
     subtitle.TextYAlignment = Enum.TextYAlignment.Center
+    subtitle.TextStrokeTransparency = 0.9
+    subtitle.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
     subtitle.Parent = titleBar
     
     -- Control buttons
