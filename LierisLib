@@ -765,13 +765,13 @@ function Lieris:CreateWindow(config)
     main.Size = windowSize
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.AnchorPoint = Vector2.new(0.5, 0.5)
-    main.BackgroundColor3 = Color3.fromRGB(15, 25, 50)  -- Очень темная сине-голубая основа
-    main.BackgroundTransparency = 0.1  -- Менее прозрачная основа для контраста
+    main.BackgroundColor3 = Color3.fromRGB(12, 20, 45)  -- Элегантная темная основа
+    main.BackgroundTransparency = 0.05  -- Почти непрозрачная для лучшего контраста
     main.BorderSizePixel = 0
     main.Parent = screenGui
     
-    createCorner(main, 20)
-    createStroke(main, Color3.fromRGB(120, 180, 255), 1, 0.8)  -- Очень тонкая голубая граница
+    createCorner(main, 24)  -- Увеличенные закругления для современности
+    createStroke(main, Color3.fromRGB(59, 130, 246), 2, 0.4)  -- Более заметная синяя граница
     
     -- Remove blur effect to prevent background blurring
     -- blur effect removed for better visibility
@@ -813,8 +813,8 @@ function Lieris:CreateWindow(config)
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
     titleBar.Size = UDim2.new(1, 0, 0, scale(70))
-    titleBar.BackgroundColor3 = Color3.fromRGB(200, 230, 255)  -- Очень светлый голубой
-    titleBar.BackgroundTransparency = 0.9  -- Почти невидимый
+    titleBar.BackgroundColor3 = Color3.fromRGB(100, 160, 255)  -- Синий-голубой
+    titleBar.BackgroundTransparency = 0.85  -- Очень прозрачный
     titleBar.BorderSizePixel = 0
     titleBar.Parent = main
     
@@ -919,27 +919,28 @@ function Lieris:CreateWindow(config)
     discordBtn.Name = "DiscordButton"
     discordBtn.Size = UDim2.new(0, scale(70), 0, scale(35))  -- Делаем в 2 раза шире!
     discordBtn.Position = UDim2.new(0, 0, 0, 0)
-    discordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    discordBtn.BackgroundColor3 = Color3.fromRGB(59, 130, 246)  -- Яркий синий Discord
     discordBtn.BackgroundTransparency = 0
     discordBtn.BorderSizePixel = 0
     discordBtn.Font = Enum.Font.GothamBold
     discordBtn.Text = "Discord"  -- Полноценная Discord кнопка
     discordBtn.TextSize = scale(12)  -- Меньший размер текста
     
-    -- Добавляем градиент к Discord кнопке
+    -- Красивый синий градиент для Discord кнопки
     createGradient(discordBtn, ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(88, 101, 242)),     -- Discord синий
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(59, 130, 246)),   -- Светло-синий
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(99, 102, 241))      -- Глубокий синий
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(59, 130, 246)),     -- Яркий синий
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(37, 99, 235)),    -- Средний синий
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(29, 78, 216))       -- Темный синий
     }, NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.1),
-        NumberSequenceKeypoint.new(1, 0.3)
+        NumberSequenceKeypoint.new(0, 0.05),
+        NumberSequenceKeypoint.new(1, 0.15)
     }, 45)
     discordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Белый текст!
     discordBtn.TextSize = scale(12)  -- Меньший размер для широкой кнопки
     discordBtn.Parent = controlsFrame
     
-    createCorner(discordBtn, 10)
+    createCorner(discordBtn, 12)
+    createStroke(discordBtn, Color3.fromRGB(30, 64, 175), 1, 0.6)  -- Тонкая синяя граница
     
     discordBtn.MouseButton1Click:Connect(function()
         openDiscord()
@@ -962,7 +963,17 @@ function Lieris:CreateWindow(config)
     closeBtn.TextSize = scale(16)
     closeBtn.Parent = controlsFrame
     
-    createCorner(closeBtn, 10)
+    createCorner(closeBtn, 12)
+    createStroke(closeBtn, Color3.fromRGB(153, 27, 27), 1, 0.6)  -- Тонкая красная граница
+    -- Красивый красный градиент для кнопки закрытия
+    createGradient(closeBtn, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(239, 68, 68)),      -- Яркий красный
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(220, 38, 38)),    -- Средний красный
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(185, 28, 28))       -- Темный красный
+    }, NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.05),
+        NumberSequenceKeypoint.new(1, 0.2)
+    }, 45)
     
     closeBtn.MouseButton1Click:Connect(function()
         window:Hide()
