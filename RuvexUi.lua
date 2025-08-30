@@ -1,6 +1,6 @@
 --[[
-RUVEX UI LIBRARY - COMPLETE MERGE
-База от Mercury Lib и Cerberus Lib + элементы от Flux, Criminality, PPHud
+RUVEX UI LIBRARY - ПОЛНОСТЬЮ ИСПРАВЛЕННАЯ ВЕРСИЯ
+База от Mercury Lib и Cerberus Lib
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -13,27 +13,13 @@ local HTTPService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 local TextService = game:GetService("TextService")
 
--- MAIN LIBRARY (Mercury Base)
+-- RUVEX LIBRARY
 local Ruvex = {
   Themes = {
     Dark = {
       Main = Color3.fromRGB(25, 25, 30),
       Secondary = Color3.fromRGB(35, 35, 40),
       Tertiary = Color3.fromRGB(255, 50, 50),
-      StrongText = Color3.fromRGB(255, 255, 255),
-      WeakText = Color3.fromRGB(172, 172, 172)
-    },
-    Red = {
-      Main = Color3.fromRGB(20, 20, 25),
-      Secondary = Color3.fromRGB(30, 30, 35),
-      Tertiary = Color3.fromRGB(255, 0, 0),
-      StrongText = Color3.fromRGB(255, 255, 255),
-      WeakText = Color3.fromRGB(172, 172, 172)
-    },
-    Crimson = {
-      Main = Color3.fromRGB(15, 15, 20),
-      Secondary = Color3.fromRGB(25, 25, 30),
-      Tertiary = Color3.fromRGB(220, 20, 60),
       StrongText = Color3.fromRGB(255, 255, 255),
       WeakText = Color3.fromRGB(172, 172, 172)
     }
@@ -52,12 +38,11 @@ local Ruvex = {
   RainbowValue = 0,
   flags = {}
 }
-Ruvex.__index = Ruvex
-Ruvex.flags = Ruvex.flags
 
-local selectedTab
+-- Устанавливаем текущую тему
+Ruvex.CurrentTheme = Ruvex.Themes.Dark
 
--- UTILITY FUNCTIONS (Mercury Base)
+-- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 function Ruvex:set_defaults(defaults, options)
   defaults = defaults or {}
   options = options or {}
@@ -67,9 +52,24 @@ function Ruvex:set_defaults(defaults, options)
   return defaults
 end
 
+function Ruvex:darken(color, f)
+  local h, s, v = Color3.toHSV(color)
+  f = 1 - ((f or 15) / 80)
+  return Color3.fromHSV(h, math.clamp(s/f, 0, 1), math.clamp(v*f, 0, 1))
+end
+
+function Ruvex:lighten(color, f)
+  local h, s, v = Color3.toHSV(color)
+  f = 1 - ((f or 15) / 80)
+  return Color3.fromHSV(h, math.clamp(s*f, 0, 1), math.clamp(v/f, 0, 1))
+end
+
+-- СОЗДАНИЕ ОБЪЕКТОВ
 function Ruvex:object(class, properties)
   local localObject = Instance.new(class)
+  properties = properties or {}
 
+  -- Применяем базовые свойства
   local forcedProps = {
     BorderSizePixel = 0,
     AutoButtonColor = false,
@@ -77,7 +77,7 @@ function Ruvex:object(class, properties)
     Text = ""
   }
 
-  for property, value in next, forcedProps do
+  for property, value in pairs(forcedProps) do
     pcall(function()
       localObject[property] = value
     end)
@@ -86,20 +86,27 @@ function Ruvex:object(class, properties)
   local methods = {}
   methods.AbsoluteObject = localObject
 
+  -- Функция анимации
   function methods:tween(options, callback)
-    local options = Ruvex:set_defaults({
+    options = Ruvex:set_defaults({
       Length = 0.2,
       Style = Enum.EasingStyle.Linear,
       Direction = Enum.EasingDirection.InOut
-    }, options)
-    callback = callback or function() return end
+    }, options or {})
+    
+    callback = callback or function() end
 
     local ti = TweenInfo.new(options.Length, options.Style, options.Direction)
-    options.Length = nil
-    options.Style = nil 
-    options.Direction = nil
+    local tweenOptions = {}
+    
+    for k, v in pairs(options) do
+      if k ~= "Length" and k ~= "Style" and k ~= "Direction" then
+        tweenOptions[k] = v
+      end
+    end
 
-    local tween = TweenService:Create(localObject, ti, options); tween:Play()
+    local tween = TweenService:Create(localObject, ti, tweenOptions)
+    tween:Play()
 
     tween.Completed:Connect(function()
       callback()
@@ -108,88 +115,58 @@ function Ruvex:object(class, properties)
     return tween
   end
 
+  -- Функция закругления углов
   function methods:round(radius)
     radius = radius or 6
-    Ruvex:object("UICorner", {
-      Parent = localObject,
-      CornerRadius = UDim.new(0, radius)
-    })
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius)
+    corner.Parent = localObject
     return methods
   end
 
-  function methods:object(class, properties)
-    local properties = properties or {}
-    properties.Parent = localObject
-    return Ruvex:object(class, properties)
+  -- Функция создания дочернего объекта
+  function methods:object(class, props)
+    props = props or {}
+    props.Parent = localObject
+    return Ruvex:object(class, props)
   end
 
-  function methods:fade(state, colorOverride, length, instant)
-    length = length or 0.2
-    if not rawget(self, "fadeFrame") then
-      local frame = self:object("Frame", {
-        BackgroundColor3 = colorOverride or self.BackgroundColor3,
-        BackgroundTransparency = (state and 1) or 0,
-        Size = UDim2.fromScale(1, 1),
-        Centered = true,
-        ZIndex = 999
-      }):round(self.AbsoluteObject:FindFirstChildOfClass("UICorner") and self.AbsoluteObject:FindFirstChildOfClass("UICorner").CornerRadius.Offset or 0)
-      rawset(self, "fadeFrame", frame)
-    else
-      self.fadeFrame.BackgroundColor3 = colorOverride or self.BackgroundColor3
-    end
-
-    if instant then
-      if state then
-        self.fadeFrame.BackgroundTransparency = 0
-        self.fadeFrame.Visible = true
-      else
-        self.fadeFrame.BackgroundTransparency = 1
-        self.fadeFrame.Visible = false
-      end
-    else
-      if state then
-        self.fadeFrame.BackgroundTransparency = 1
-        self.fadeFrame.Visible = true
-        self.fadeFrame:tween{BackgroundTransparency = 0, Length = length}
-      else
-        self.fadeFrame.BackgroundTransparency = 0
-        self.fadeFrame:tween({BackgroundTransparency = 1, Length = length}, function()
-          self.fadeFrame.Visible = false
-        end)
-      end
-    end 
-  end
-
+  -- Обработка специальных свойств
   local customHandlers = {
     Centered = function(value)
       if value then
         localObject.AnchorPoint = Vector2.new(0.5, 0.5)
         localObject.Position = UDim2.fromScale(0.5, 0.5)
-      end       
+      end
     end,
     Theme = function(value)
-      for property, obj in next, value do
+      for property, obj in pairs(value) do
         if type(obj) == "table" then
           local theme, colorAlter = obj[1], obj[2] or 0
           local themeColor = Ruvex.CurrentTheme[theme]
-          local modifiedColor = themeColor
-          if colorAlter < 0 then
-            modifiedColor = Ruvex:darken(themeColor, -1 * colorAlter)
-          elseif colorAlter > 0 then
-            modifiedColor = Ruvex:lighten(themeColor, colorAlter)
+          if themeColor then
+            local modifiedColor = themeColor
+            if colorAlter < 0 then
+              modifiedColor = Ruvex:darken(themeColor, math.abs(colorAlter))
+            elseif colorAlter > 0 then
+              modifiedColor = Ruvex:lighten(themeColor, colorAlter)
+            end
+            localObject[property] = modifiedColor
+            table.insert(Ruvex.ThemeObjects[theme], {methods, property, theme, colorAlter})
           end
-          localObject[property] = modifiedColor
-          table.insert(Ruvex.ThemeObjects[theme], {methods, property, theme, colorAlter})
         else
           local themeColor = Ruvex.CurrentTheme[obj]
-          localObject[property] = themeColor
-          table.insert(Ruvex.ThemeObjects[obj], {methods, property, obj, 0})
+          if themeColor then
+            localObject[property] = themeColor
+            table.insert(Ruvex.ThemeObjects[obj], {methods, property, obj, 0})
+          end
         end
       end
-    end,
+    end
   }
 
-  for property, value in next, properties do
+  -- Применяем свойства
+  for property, value in pairs(properties) do
     if customHandlers[property] then
       customHandlers[property](value)
     else
@@ -207,58 +184,7 @@ function Ruvex:object(class, properties)
   })
 end
 
-function Ruvex:show(state)
-  self.Toggled = state
-  self.mainFrame.ClipsDescendants = true
-  if state then
-    self.mainFrame:tween({Size = self.mainFrame.oldSize, Length = 0.25}, function()
-      rawset(self.mainFrame, "oldSize", (state and self.mainFrame.oldSize) or self.mainFrame.Size)
-      self.mainFrame.ClipsDescendants = false
-    end)
-    wait(0.15)
-    self.mainFrame:fade(not state, self.mainFrame.BackgroundColor3, 0.15)
-  else          
-    self.mainFrame:fade(not state, self.mainFrame.BackgroundColor3, 0.15)
-    wait(0.1)
-    self.mainFrame:tween{Size = UDim2.new(), Length = 0.25}
-  end
-end
-
-function Ruvex:darken(color, f)
-  local h, s, v = Color3.toHSV(color)
-  f = 1 - ((f or 15) / 80)
-  return Color3.fromHSV(h, math.clamp(s/f, 0, 1), math.clamp(v*f, 0, 1))
-end
-
-function Ruvex:lighten(color, f)
-  local h, s, v = Color3.toHSV(color)
-  f = 1 - ((f or 15) / 80)
-  return Color3.fromHSV(h, math.clamp(s*f, 0, 1), math.clamp(v/f, 0, 1))
-end
-
-function Ruvex:change_theme(toTheme)
-  Ruvex.CurrentTheme = toTheme
-  local c = self:lighten(toTheme.Tertiary, 20)
-  if Ruvex.DisplayName then
-    Ruvex.DisplayName.Text = "Welcome, <font color='rgb(" ..  math.floor(c.R*255) .. "," .. math.floor(c.G*255) .. "," .. math.floor(c.B*255) .. ")'> <b>" .. LocalPlayer.DisplayName .. "</b> </font>"
-  end
-  for color, objects in next, Ruvex.ThemeObjects do
-    local themeColor = Ruvex.CurrentTheme[color]
-    for _, obj in next, objects do
-      local element, property, theme, colorAlter = obj[1], obj[2], obj[3], obj[4] or 0
-      local themeColor = Ruvex.CurrentTheme[theme]
-      local modifiedColor = themeColor
-      if colorAlter < 0 then
-        modifiedColor = Ruvex:darken(themeColor, -1 * colorAlter)
-      elseif colorAlter > 0 then
-        modifiedColor = Ruvex:lighten(themeColor, colorAlter)
-      end
-      element:tween{[property] = modifiedColor}
-    end
-  end
-end
-
--- RAINBOW SYSTEM (Flux)
+-- RAINBOW ЭФФЕКТ
 spawn(function()
   while true do
     Ruvex.RainbowValue = Ruvex.RainbowValue + 1/255
@@ -273,135 +199,109 @@ function Ruvex:GetRainbowColor()
   return Color3.fromHSV(Ruvex.RainbowValue, 1, 1)
 end
 
--- MAIN WINDOW CREATION (Mercury Base)
+-- СОЗДАНИЕ ГЛАВНОГО ОКНА
 function Ruvex:create(options)
-  local settings = {
-    Theme = "Dark"
-  }
-
-  if readfile and writefile and isfile then
-    if not isfile("RuvexSettings.json") then
-      writefile("RuvexSettings.json", HTTPService:JSONEncode(settings))
-    end
-    settings = HTTPService:JSONDecode(readfile("RuvexSettings.json"))
-    Ruvex.CurrentTheme = Ruvex.Themes[settings.Theme]
-  end
-
   options = self:set_defaults({
     Name = "Ruvex",
     Size = UDim2.fromOffset(600, 400),
-    Theme = self.CurrentTheme or self.Themes.Dark,
-    Link = "https://github.com/ruvex/ui-lib"
-  }, options)
-
-  if getgenv and getgenv().RuvexUI then
-    getgenv():RuvexUI()
-    getgenv().RuvexUI = nil
-  end
-
-  if options.Link:sub(-1, -1) == "/" then
-    options.Link = options.Link:sub(1, -2)
-  end
+    Theme = self.CurrentTheme
+  }, options or {})
 
   self.CurrentTheme = options.Theme
 
+  -- Создание ScreenGui
   local gui = self:object("ScreenGui", {
     Parent = (RunService:IsStudio() and LocalPlayer.PlayerGui) or CoreGui,
     ZIndexBehavior = Enum.ZIndexBehavior.Global
   })
 
-  -- Notification holder (Flux style)
+  -- Holder для уведомлений
   local notificationHolder = gui:object("Frame", {
     AnchorPoint = Vector2.new(1, 1),
     BackgroundTransparency = 1,
-    Position = UDim2.new(1, -30,1, -30),
+    Position = UDim2.new(1, -30, 1, -30),
     Size = UDim2.new(0, 300, 1, -60)
   })
 
-  local _notiHolderList = notificationHolder:object("UIListLayout", {
+  notificationHolder:object("UIListLayout", {
     Padding = UDim.new(0, 20),
     VerticalAlignment = Enum.VerticalAlignment.Bottom
   })
 
-  -- Main frame (Mercury style)
+  -- Главный фрейм
   local core = gui:object("Frame", {
     Size = UDim2.new(),
     Theme = {BackgroundColor3 = "Main"},
     Centered = true,
-    ClipsDescendants = true             
+    ClipsDescendants = true
   }):round(10)
 
-  core:fade(true, nil, 0.2, true)
-  core:fade(false, nil, 0.4)
+  -- Анимация появления
   core:tween({Size = options.Size, Length = 0.3}, function()
     core.ClipsDescendants = false
   end)
 
-  -- Mercury dragging system
-  do
-    local S, Event = pcall(function()
-      return core.MouseEnter
-    end)
+  -- Система перетаскивания
+  local function makeDraggable(frame, handle)
+    local dragging = false
+    local dragInput, mousePos, framePos
 
-    if S then
-      core.Active = true;
+    local function update(input)
+      local delta = input.Position - mousePos
+      frame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+    end
 
-      Event:connect(function()
-        local Input = core.InputBegan:connect(function(Key)
-          if Key.UserInputType == Enum.UserInputType.MouseButton1 then
-            local ObjectPosition = Vector2.new(Mouse.X - core.AbsolutePosition.X, Mouse.Y - core.AbsolutePosition.Y)
-            while RunService.RenderStepped:wait() and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+    handle.InputBegan:Connect(function(input)
+      if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = frame.Position
 
-              if Ruvex.LockDragging then
-                local FrameX, FrameY = math.clamp(Mouse.X - ObjectPosition.X, 0, gui.AbsoluteSize.X - core.AbsoluteSize.X), math.clamp(Mouse.Y - ObjectPosition.Y, 0, gui.AbsoluteSize.Y - core.AbsoluteSize.Y)
-                core:tween{
-                  Position = UDim2.fromOffset(FrameX + (core.Size.X.Offset * core.AnchorPoint.X), FrameY + (core.Size.Y.Offset * core.AnchorPoint.Y)),
-                  Length = Ruvex.DragSpeed
-                }
-              else
-                core:tween{
-                  Position = UDim2.fromOffset(Mouse.X - ObjectPosition.X + (core.Size.X.Offset * core.AnchorPoint.X), Mouse.Y - ObjectPosition.Y + (core.Size.Y.Offset * core.AnchorPoint.Y)),
-                  Length = Ruvex.DragSpeed    
-                }
-              end       
-            end
+        input.Changed:Connect(function()
+          if input.UserInputState == Enum.UserInputState.End then
+            dragging = false
           end
         end)
+      end
+    end)
 
-        local Leave
-        Leave = core.MouseLeave:connect(function()
-          Input:disconnect()
-          Leave:disconnect()
-        end)
-      end)
-    end
+    handle.InputChanged:Connect(function(input)
+      if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+      end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+      if input == dragInput and dragging then
+        update(input)
+      end
+    end)
   end
 
-  rawset(core, "oldSize", options.Size)
-  self.mainFrame = core
-
-  -- Title bar (Cerberus style)
+  -- Заголовок
   local titleBar = core:object("Frame", {
     Size = UDim2.new(1, 0, 0, 35),
     Theme = {BackgroundColor3 = "Secondary"},
     Position = UDim2.new(0, 0, 0, 0)
   }):round(10)
 
-  -- Title bar corner fix
-  local titleBarCorner = titleBar:object("Frame", {
+  -- Скрываем нижние углы заголовка
+  titleBar:object("Frame", {
     AnchorPoint = Vector2.new(0, 1),
     Theme = {BackgroundColor3 = "Secondary"},
     Position = UDim2.new(0, 0, 1, 0),
     Size = UDim2.new(1, 0, 0, 10)
   })
 
-  local titleBarSeparator = titleBar:object("Frame", {
+  -- Красная полоска
+  titleBar:object("Frame", {
     AnchorPoint = Vector2.new(0, 1),
     Theme = {BackgroundColor3 = "Tertiary"},
     Position = UDim2.new(0, 0, 1, 0),
     Size = UDim2.new(1, 0, 0, 2)
   })
 
+  -- Название
   local title = titleBar:object("TextLabel", {
     Theme = {TextColor3 = "StrongText"},
     Size = UDim2.new(1, -20, 1, 0),
@@ -413,7 +313,7 @@ function Ruvex:create(options)
     BackgroundTransparency = 1
   })
 
-  -- Close button (Cerberus style)
+  -- Кнопка закрытия
   local closeButton = titleBar:object("TextButton", {
     AnchorPoint = Vector2.new(1, 0.5),
     Position = UDim2.new(1, -10, 0.5, 0),
@@ -426,64 +326,46 @@ function Ruvex:create(options)
   })
 
   closeButton.MouseButton1Click:Connect(function()
-    core.ClipsDescendants = true
-    core:fade(true)
-    wait(0.1)
     core:tween({Size = UDim2.new()}, function()
       gui.AbsoluteObject:Destroy()
     end)
   end)
 
-  -- Content area
+  -- Делаем окно перетаскиваемым
+  makeDraggable(core, titleBar)
+
+  -- Область контента
   local contentFrame = core:object("Frame", {
     Position = UDim2.new(0, 0, 0, 35),
     Size = UDim2.new(1, 0, 1, -35),
     BackgroundTransparency = 1
   })
 
-  -- Tab container (Mercury style)
+  -- Контейнер вкладок
   local tabContainer = contentFrame:object("Frame", {
     Size = UDim2.new(0, 150, 1, 0),
     Theme = {BackgroundColor3 = "Secondary"},
     Position = UDim2.new(0, 0, 0, 0)
   })
 
-  local tabLayout = tabContainer:object("UIListLayout", {
+  tabContainer:object("UIListLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder,
     Padding = UDim.new(0, 5)
   })
 
-  local tabPadding = tabContainer:object("UIPadding", {
+  tabContainer:object("UIPadding", {
     PaddingTop = UDim.new(0, 10),
     PaddingBottom = UDim.new(0, 10),
     PaddingLeft = UDim.new(0, 10),
     PaddingRight = UDim.new(0, 10)
   })
 
-  -- Page container
+  -- Контейнер страниц
   local pageContainer = contentFrame:object("Frame", {
     Position = UDim2.new(0, 150, 0, 0),
     Size = UDim2.new(1, -150, 1, 0),
-    Theme = {BackgroundColor3 = "Main"},
     BackgroundTransparency = 1
   })
-
-  -- Display name setup
-  if LocalPlayer.DisplayName then
-    local c = self:lighten(self.CurrentTheme.Tertiary, 20)
-    self.DisplayName = core:object("TextLabel", {
-      AnchorPoint = Vector2.new(0.5, 0),
-      Position = UDim2.new(0.5, 0, 0, 45),
-      Size = UDim2.new(1, -40, 0, 20),
-      BackgroundTransparency = 1,
-      Text = "Welcome, <font color='rgb(" ..  math.floor(c.R*255) .. "," .. math.floor(c.G*255) .. "," .. math.floor(c.B*255) .. ")'> <b>" .. LocalPlayer.DisplayName .. "</b> </font>",
-      TextSize = 14,
-      Font = Enum.Font.Gotham,
-      Theme = {TextColor3 = "StrongText"},
-      RichText = true,
-      TextXAlignment = Enum.TextXAlignment.Center
-    })
-  end
 
   local Window = {
     gui = gui,
@@ -493,7 +375,7 @@ function Ruvex:create(options)
     notificationHolder = notificationHolder
   }
 
-  -- NOTIFICATION SYSTEM (Flux style)
+  -- СИСТЕМА УВЕДОМЛЕНИЙ
   function Window:notify(options)
     options = options or {}
     local title = options.Title or "Notification"
@@ -506,7 +388,7 @@ function Ruvex:create(options)
       Theme = {BackgroundColor3 = "Secondary"}
     }):round(8)
 
-    local notifTitle = notification:object("TextLabel", {
+    notification:object("TextLabel", {
       Size = UDim2.new(1, -20, 0, 25),
       Position = UDim2.fromOffset(10, 5),
       BackgroundTransparency = 1,
@@ -517,7 +399,7 @@ function Ruvex:create(options)
       TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    local notifText = notification:object("TextLabel", {
+    notification:object("TextLabel", {
       Size = UDim2.new(1, -20, 0, 45),
       Position = UDim2.fromOffset(10, 30),
       BackgroundTransparency = 1,
@@ -529,11 +411,11 @@ function Ruvex:create(options)
       TextYAlignment = Enum.TextYAlignment.Top
     })
 
-    -- Animate notification
+    -- Анимация появления
     notification.Position = UDim2.new(1, 0, 0, 0)
-    notification:tween{Position = UDim2.new(0, 0, 0, 0), Length = 0.3}
+    notification:tween({Position = UDim2.new(0, 0, 0, 0), Length = 0.3})
 
-    -- Auto remove notification
+    -- Автоматическое удаление
     spawn(function()
       wait(duration)
       notification:tween({Position = UDim2.new(1, 0, 0, 0), Length = 0.3}, function()
@@ -542,13 +424,13 @@ function Ruvex:create(options)
     end)
   end
 
-  -- TAB CREATION (Mercury style)
+  -- СОЗДАНИЕ ВКЛАДОК
   function Window:tab(options)
     options = options or {}
     local tabName = options.Name or "Tab"
-    local tabIcon = options.Icon or "rbxassetid://7734053426"
+    local tabIcon = options.Icon or ""
 
-    -- Tab button (Mercury style design)
+    -- Кнопка вкладки
     local tabButton = Ruvex:object("TextButton", {
       Parent = tabContainer,
       Size = UDim2.new(1, 0, 0, 35),
@@ -556,17 +438,22 @@ function Ruvex:create(options)
       Text = ""
     }):round(6)
 
-    local tabIcon_img = tabButton:object("ImageLabel", {
-      Size = UDim2.fromOffset(16, 16),
-      Position = UDim2.fromOffset(10, 9.5),
-      BackgroundTransparency = 1,
-      Image = tabIcon,
-      Theme = {ImageColor3 = "WeakText"}
-    })
+    -- Иконка вкладки
+    local tabIcon_img = nil
+    if tabIcon ~= "" then
+      tabIcon_img = tabButton:object("ImageLabel", {
+        Size = UDim2.fromOffset(16, 16),
+        Position = UDim2.fromOffset(10, 9.5),
+        BackgroundTransparency = 1,
+        Image = tabIcon,
+        Theme = {ImageColor3 = "WeakText"}
+      })
+    end
 
+    -- Текст вкладки
     local tabLabel = tabButton:object("TextLabel", {
-      Size = UDim2.new(1, -35, 1, 0),
-      Position = UDim2.fromOffset(35, 0),
+      Size = UDim2.new(1, tabIcon_img and -35 or -15, 1, 0),
+      Position = UDim2.fromOffset(tabIcon_img and 35 or 10, 0),
       BackgroundTransparency = 1,
       Text = tabName,
       Theme = {TextColor3 = "WeakText"},
@@ -575,7 +462,7 @@ function Ruvex:create(options)
       TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    -- Tab content frame
+    -- Контент вкладки
     local tabContent = Ruvex:object("ScrollingFrame", {
       Parent = pageContainer,
       Size = UDim2.new(1, 0, 1, 0),
@@ -587,48 +474,52 @@ function Ruvex:create(options)
       AutomaticCanvasSize = Enum.AutomaticSize.Y
     })
 
-    local contentLayout = tabContent:object("UIListLayout", {
+    tabContent:object("UIListLayout", {
       SortOrder = Enum.SortOrder.LayoutOrder,
       Padding = UDim.new(0, 8)
     })
 
-    local contentPadding = tabContent:object("UIPadding", {
+    tabContent:object("UIPadding", {
       PaddingTop = UDim.new(0, 15),
       PaddingBottom = UDim.new(0, 15),
       PaddingLeft = UDim.new(0, 15),
       PaddingRight = UDim.new(0, 15)
     })
 
-    -- Tab functionality
+    -- Логика выбора вкладки
     local function selectTab()
-      -- Deselect all tabs
+      -- Снять выделение со всех вкладок
       for _, tab in pairs(self.tabs) do
         tab.content.Visible = false
-        tab.button:tween{Theme = {BackgroundColor3 = "Secondary"}}
-        tab.icon:tween{Theme = {ImageColor3 = "WeakText"}}
-        tab.label:tween{Theme = {TextColor3 = "WeakText"}}
+        tab.button:tween({Theme = {BackgroundColor3 = "Secondary"}})
+        tab.label:tween({Theme = {TextColor3 = "WeakText"}})
+        if tab.icon then
+          tab.icon:tween({Theme = {ImageColor3 = "WeakText"}})
+        end
       end
 
-      -- Select this tab
+      -- Выбрать эту вкладку
       tabContent.Visible = true
-      tabButton:tween{Theme = {BackgroundColor3 = "Tertiary"}}
-      tabIcon_img:tween{Theme = {ImageColor3 = "StrongText"}}
-      tabLabel:tween{Theme = {TextColor3 = "StrongText"}}
+      tabButton:tween({Theme = {BackgroundColor3 = "Tertiary"}})
+      tabLabel:tween({Theme = {TextColor3 = "StrongText"}})
+      if tabIcon_img then
+        tabIcon_img:tween({Theme = {ImageColor3 = "StrongText"}})
+      end
       self.selectedTab = Tab
     end
 
     tabButton.MouseButton1Click:Connect(selectTab)
 
-    -- Hover effects (Criminality style)
+    -- Эффекты наведения
     tabButton.MouseEnter:Connect(function()
       if self.selectedTab ~= Tab then
-        tabButton:tween{Theme = {BackgroundColor3 = {"Tertiary", -20}}, Length = 0.15}
+        tabButton:tween({Theme = {BackgroundColor3 = {"Tertiary", -20}}}, {Length = 0.15})
       end
     end)
 
     tabButton.MouseLeave:Connect(function()
       if self.selectedTab ~= Tab then
-        tabButton:tween{Theme = {BackgroundColor3 = "Secondary"}, Length = 0.15}
+        tabButton:tween({Theme = {BackgroundColor3 = "Secondary"}}, {Length = 0.15})
       end
     end)
 
@@ -643,12 +534,14 @@ function Ruvex:create(options)
 
     table.insert(self.tabs, Tab)
 
-    -- Select first tab automatically
+    -- Автоматически выбрать первую вкладку
     if #self.tabs == 1 then
       selectTab()
     end
 
-    -- TAB ELEMENT FUNCTIONS
+    -- ФУНКЦИИ ЭЛЕМЕНТОВ ВКЛАДКИ
+    
+    -- Секция
     function Tab:section(options)
       options = options or {}
       local sectionName = options.Name or "Section"
@@ -659,7 +552,7 @@ function Ruvex:create(options)
         BackgroundTransparency = 1
       })
 
-      local sectionLabel = section:object("TextLabel", {
+      section:object("TextLabel", {
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
         Text = sectionName,
@@ -669,7 +562,7 @@ function Ruvex:create(options)
         TextXAlignment = Enum.TextXAlignment.Left
       })
 
-      local divider = section:object("Frame", {
+      section:object("Frame", {
         Size = UDim2.new(1, 0, 0, 1),
         Position = UDim2.new(0, 0, 1, -1),
         Theme = {BackgroundColor3 = "Tertiary"},
@@ -679,6 +572,7 @@ function Ruvex:create(options)
       return section
     end
 
+    -- Переключатель
     function Tab:toggle(options)
       options = options or {}
       local toggleName = options.Name or "Toggle"
@@ -704,7 +598,7 @@ function Ruvex:create(options)
         Text = ""
       })
 
-      local toggleNameLabel = toggle:object("TextLabel", {
+      toggle:object("TextLabel", {
         Size = UDim2.new(1, -55, 0, 20),
         Position = UDim2.fromOffset(15, 8),
         BackgroundTransparency = 1,
@@ -716,7 +610,7 @@ function Ruvex:create(options)
       })
 
       if toggleDesc ~= "" then
-        local toggleDescLabel = toggle:object("TextLabel", {
+        toggle:object("TextLabel", {
           Size = UDim2.new(1, -55, 0, 20),
           Position = UDim2.fromOffset(15, 25),
           BackgroundTransparency = 1,
@@ -728,7 +622,7 @@ function Ruvex:create(options)
         })
       end
 
-      -- Toggle switch (Cerberus style)
+      -- Переключатель
       local toggleSwitch = toggle:object("Frame", {
         Size = UDim2.fromOffset(40, 20),
         Position = UDim2.new(1, -50, 0, 8),
@@ -742,8 +636,8 @@ function Ruvex:create(options)
       }):round(8)
 
       local function updateToggle()
-        toggleSwitch:tween{Theme = {BackgroundColor3 = toggleState and "Tertiary" or {"WeakText", -20}}}
-        toggleIndicator:tween{Position = UDim2.fromOffset(toggleState and 22 or 2, 2)}
+        toggleSwitch:tween({Theme = {BackgroundColor3 = toggleState and "Tertiary" or {"WeakText", -20}}})
+        toggleIndicator:tween({Position = UDim2.fromOffset(toggleState and 22 or 2, 2)})
         
         if flag then
           Ruvex.flags[flag] = toggleState
@@ -757,18 +651,19 @@ function Ruvex:create(options)
         updateToggle()
       end)
 
-      -- Hover effects (Criminality style)
+      -- Эффекты наведения
       toggleButton.MouseEnter:Connect(function()
-        toggle:tween{Theme = {BackgroundColor3 = {"Secondary", 10}}, Length = 0.15}
+        toggle:tween({Theme = {BackgroundColor3 = {"Secondary", 10}}}, {Length = 0.15})
       end)
 
       toggleButton.MouseLeave:Connect(function()
-        toggle:tween{Theme = {BackgroundColor3 = "Secondary"}, Length = 0.15}
+        toggle:tween({Theme = {BackgroundColor3 = "Secondary"}}, {Length = 0.15})
       end)
 
       return toggle
     end
 
+    -- Кнопка
     function Tab:button(options)
       options = options or {}
       local buttonName = options.Name or "Button"
@@ -787,7 +682,7 @@ function Ruvex:create(options)
         Text = ""
       })
 
-      local buttonNameLabel = button:object("TextLabel", {
+      button:object("TextLabel", {
         Size = UDim2.new(1, -20, 0, 20),
         Position = UDim2.fromOffset(15, 8),
         BackgroundTransparency = 1,
@@ -799,7 +694,7 @@ function Ruvex:create(options)
       })
 
       if buttonDesc ~= "" then
-        local buttonDescLabel = button:object("TextLabel", {
+        button:object("TextLabel", {
           Size = UDim2.new(1, -20, 0, 20),
           Position = UDim2.fromOffset(15, 25),
           BackgroundTransparency = 1,
@@ -815,18 +710,19 @@ function Ruvex:create(options)
         pcall(callback)
       end)
 
-      -- Hover effects (Criminality style)
+      -- Эффекты наведения
       buttonBtn.MouseEnter:Connect(function()
-        button:tween{Theme = {BackgroundColor3 = {"Tertiary", 20}}, Length = 0.15}
+        button:tween({Theme = {BackgroundColor3 = {"Tertiary", 20}}}, {Length = 0.15})
       end)
 
       buttonBtn.MouseLeave:Connect(function()
-        button:tween{Theme = {BackgroundColor3 = "Tertiary"}, Length = 0.15}
+        button:tween({Theme = {BackgroundColor3 = "Tertiary"}}, {Length = 0.15})
       end)
 
       return button
     end
 
+    -- Слайдер
     function Tab:slider(options)
       options = options or {}
       local sliderName = options.Name or "Slider"
@@ -849,7 +745,7 @@ function Ruvex:create(options)
         Theme = {BackgroundColor3 = "Secondary"}
       }):round(6)
 
-      local sliderNameLabel = slider:object("TextLabel", {
+      slider:object("TextLabel", {
         Size = UDim2.new(0.7, 0, 0, 20),
         Position = UDim2.fromOffset(15, 8),
         BackgroundTransparency = 1,
@@ -872,7 +768,7 @@ function Ruvex:create(options)
       })
 
       if sliderDesc ~= "" then
-        local sliderDescLabel = slider:object("TextLabel", {
+        slider:object("TextLabel", {
           Size = UDim2.new(1, -20, 0, 15),
           Position = UDim2.fromOffset(15, 25),
           BackgroundTransparency = 1,
@@ -884,7 +780,7 @@ function Ruvex:create(options)
         })
       end
 
-      -- Slider bar
+      -- Полоса слайдера
       local sliderBar = slider:object("Frame", {
         Size = UDim2.new(1, -30, 0, 4),
         Position = UDim2.new(0, 15, 1, -12),
@@ -908,7 +804,7 @@ function Ruvex:create(options)
         sliderValue = math.floor((sliderValue / increment) + 0.5) * increment
         
         local percentage = (sliderValue - min) / (max - min)
-        sliderFill:tween{Size = UDim2.new(percentage, 0, 1, 0), Length = 0.1}
+        sliderFill:tween({Size = UDim2.new(percentage, 0, 1, 0)}, {Length = 0.1})
         sliderValueLabel.Text = tostring(sliderValue)
         
         if flag then
@@ -940,13 +836,13 @@ function Ruvex:create(options)
         end
       end)
 
-      -- Hover effects
+      -- Эффекты наведения
       sliderButton.MouseEnter:Connect(function()
-        slider:tween{Theme = {BackgroundColor3 = {"Secondary", 10}}, Length = 0.15}
+        slider:tween({Theme = {BackgroundColor3 = {"Secondary", 10}}}, {Length = 0.15})
       end)
 
       sliderButton.MouseLeave:Connect(function()
-        slider:tween{Theme = {BackgroundColor3 = "Secondary"}, Length = 0.15}
+        slider:tween({Theme = {BackgroundColor3 = "Secondary"}}, {Length = 0.15})
       end)
 
       return slider
@@ -955,7 +851,7 @@ function Ruvex:create(options)
     return Tab
   end
 
-  -- Global toggle
+  -- Глобальное переключение
   UserInputService.InputBegan:Connect(function(key, gameProcessed)
     if key.KeyCode == Ruvex.ToggleKey and not gameProcessed then
       Ruvex.Toggled = not Ruvex.Toggled
