@@ -9,9 +9,18 @@ local Ruvex = {
     ThemeObjects = {
         Main = {},
         Secondary = {},
+        Tertiary = {},
         Accent = {},
+        AccentHover = {},
+        AccentDark = {},
         Text = {},
-        Border = {}
+        TextSecondary = {},
+        TextDim = {},
+        Border = {},
+        BorderAccent = {},
+        Success = {},
+        Warning = {},
+        Error = {}
     },
     CurrentTheme = nil,
     Toggled = true,
@@ -53,20 +62,18 @@ Ruvex.Themes = {
 Ruvex.CurrentTheme = Ruvex.Themes.Dark
 
 -- Rainbow animation
-coroutine.wrap(function()
-    while wait() do
-        Ruvex.RainbowColorValue = Ruvex.RainbowColorValue + 1 / 255
-        Ruvex.HueSelectionPosition = Ruvex.HueSelectionPosition + 1
+RunService.Heartbeat:Connect(function()
+    Ruvex.RainbowColorValue = Ruvex.RainbowColorValue + 1 / 255
+    Ruvex.HueSelectionPosition = Ruvex.HueSelectionPosition + 1
 
-        if Ruvex.RainbowColorValue >= 1 then
-            Ruvex.RainbowColorValue = 0
-        end
-
-        if Ruvex.HueSelectionPosition == 80 then
-            Ruvex.HueSelectionPosition = 0
-        end
+    if Ruvex.RainbowColorValue >= 1 then
+        Ruvex.RainbowColorValue = 0
     end
-end)()
+
+    if Ruvex.HueSelectionPosition == 80 then
+        Ruvex.HueSelectionPosition = 0
+    end
+end)
 
 -- Utility Functions
 function Ruvex:Tween(object, duration, properties, easingStyle, easingDirection, callback)
@@ -108,16 +115,26 @@ function Ruvex:CreateInstance(className, properties, children)
                 for themeProp, themeValue in pairs(value) do
                     if type(themeValue) == "table" then
                         local theme, modifier = themeValue[1], themeValue[2] or 0
-                        local color = Ruvex.CurrentTheme[theme]
-                        if modifier ~= 0 then
-                            color = Ruvex:ModifyColor(color, modifier)
+                        local color = Ruvex.CurrentTheme and Ruvex.CurrentTheme[theme]
+                        if color then
+                            if modifier ~= 0 then
+                                color = Ruvex:ModifyColor(color, modifier)
+                            end
+                            instance[themeProp] = color
+                            -- Безопасная проверка существования таблицы
+                            if Ruvex.ThemeObjects[theme] then
+                                table.insert(Ruvex.ThemeObjects[theme], {instance, themeProp, theme, modifier})
+                            end
                         end
-                        instance[themeProp] = color
-                        table.insert(Ruvex.ThemeObjects[theme], {instance, themeProp, theme, modifier})
                     else
-                        local color = Ruvex.CurrentTheme[themeValue]
-                        instance[themeProp] = color
-                        table.insert(Ruvex.ThemeObjects[themeValue], {instance, themeProp, themeValue, 0})
+                        local color = Ruvex.CurrentTheme and Ruvex.CurrentTheme[themeValue]
+                        if color then
+                            instance[themeProp] = color
+                            -- Безопасная проверка существования таблицы
+                            if Ruvex.ThemeObjects[themeValue] then
+                                table.insert(Ruvex.ThemeObjects[themeValue], {instance, themeProp, themeValue, 0})
+                            end
+                        end
                     end
                 end
             else
@@ -129,7 +146,9 @@ function Ruvex:CreateInstance(className, properties, children)
     -- Add children
     if children then
         for _, child in pairs(children) do
-            child.Parent = instance
+            if child then
+                child.Parent = instance
+            end
         end
     end
     
@@ -267,7 +286,7 @@ function Ruvex:CreateWindow(config)
         Size = UDim2.new(1, -120, 1, 0),
         Position = UDim2.new(0, 15, 0, 0),
         Text = windowTitle,
-        Font = Enum.Font.GothamBold,
+        Font = Enum.Font.SourceSansBold,
         TextSize = 16,
         TextXAlignment = Enum.TextXAlignment.Left,
         BackgroundTransparency = 1,
@@ -316,7 +335,7 @@ function Ruvex:CreateWindow(config)
         Parent = minimizeBtn,
         Size = UDim2.new(1, 0, 1, 0),
         Text = "_",
-        Font = Enum.Font.GothamBold,
+        Font = Enum.Font.SourceSansBold,
         TextSize = 14,
         BackgroundTransparency = 1,
         Theme = {
@@ -339,7 +358,7 @@ function Ruvex:CreateWindow(config)
         Parent = closeBtn,
         Size = UDim2.new(1, 0, 1, 0),
         Text = "×",
-        Font = Enum.Font.GothamBold,
+        Font = Enum.Font.SourceSansBold,
         TextSize = 16,
         BackgroundTransparency = 1,
         TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -476,7 +495,7 @@ function Ruvex:CreateWindow(config)
             Size = UDim2.new(1, -20, 1, 0),
             Position = UDim2.new(0, tabIcon ~= "" and 25 or 10, 0, 0),
             Text = tabName,
-            Font = Enum.Font.Gotham,
+            Font = Enum.Font.SourceSans,
             TextSize = 12,
             BackgroundTransparency = 1,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -674,7 +693,7 @@ function Ruvex:CreateWindow(config)
                 Size = UDim2.new(1, -20, 1, 0),
                 Position = UDim2.new(0, 15, 0, 0),
                 Text = sectionName,
-                Font = Enum.Font.GothamSemibold,
+                Font = Enum.Font.SourceSansBold,
                 TextSize = 14,
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Left,
@@ -758,7 +777,7 @@ function Ruvex:CreateWindow(config)
                     Parent = toggleButton,
                     Size = UDim2.new(1, 0, 1, 0),
                     Text = "✓",
-                    Font = Enum.Font.GothamBold,
+                    Font = Enum.Font.SourceSansBold,
                     TextSize = 12,
                     BackgroundTransparency = 1,
                     TextColor3 = Color3.fromRGB(255, 255, 255),
@@ -772,7 +791,7 @@ function Ruvex:CreateWindow(config)
                     Size = UDim2.new(1, -30, 1, 0),
                     Position = UDim2.new(0, 30, 0, 0),
                     Text = toggleName,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 13,
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -837,7 +856,7 @@ function Ruvex:CreateWindow(config)
                     Parent = sectionContent,
                     Size = UDim2.new(1, 0, 0, 35),
                     Text = buttonName,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 13,
                     Theme = {
                         BackgroundColor3 = "Tertiary",
@@ -905,7 +924,7 @@ function Ruvex:CreateWindow(config)
                     Size = UDim2.new(1, -50, 0, 20),
                     Position = UDim2.new(0, 0, 0, 0),
                     Text = sliderName,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 13,
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -921,7 +940,7 @@ function Ruvex:CreateWindow(config)
                     Size = UDim2.new(0, 50, 0, 20),
                     Position = UDim2.new(1, -50, 0, 0),
                     Text = tostring(slider.Value),
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 13,
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Right,
@@ -1069,7 +1088,7 @@ function Ruvex:CreateWindow(config)
                     Size = UDim2.new(1, 0, 0, 20),
                     Position = UDim2.new(0, 0, 0, 0),
                     Text = dropdownName,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 13,
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -1099,7 +1118,7 @@ function Ruvex:CreateWindow(config)
                     Size = UDim2.new(1, -30, 1, 0),
                     Position = UDim2.new(0, 10, 0, 0),
                     Text = dropdown.Value,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 12,
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -1115,7 +1134,7 @@ function Ruvex:CreateWindow(config)
                     Size = UDim2.new(0, 20, 1, 0),
                     Position = UDim2.new(1, -20, 0, 0),
                     Text = "▼",
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 10,
                     BackgroundTransparency = 1,
                     Theme = {
@@ -1151,7 +1170,7 @@ function Ruvex:CreateWindow(config)
                         Parent = dropdownList,
                         Size = UDim2.new(1, 0, 0, 25),
                         Text = option,
-                        Font = Enum.Font.Gotham,
+                        Font = Enum.Font.SourceSans,
                         TextSize = 12,
                         BackgroundTransparency = 1,
                         Theme = {
@@ -1226,7 +1245,7 @@ function Ruvex:CreateWindow(config)
                             Parent = dropdownList,
                             Size = UDim2.new(1, 0, 0, 25),
                             Text = option,
-                            Font = Enum.Font.Gotham,
+                            Font = Enum.Font.SourceSans,
                             TextSize = 12,
                             BackgroundTransparency = 1,
                             Theme = {
@@ -1295,7 +1314,7 @@ function Ruvex:CreateWindow(config)
                     Size = UDim2.new(1, 0, 0, 20),
                     Position = UDim2.new(0, 0, 0, 0),
                     Text = textboxName,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 13,
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -1312,7 +1331,7 @@ function Ruvex:CreateWindow(config)
                     Position = UDim2.new(0, 0, 1, -25),
                     Text = textboxDefault,
                     PlaceholderText = textboxPlaceholder,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 12,
                     Theme = {
                         BackgroundColor3 = "Tertiary",
@@ -1387,7 +1406,7 @@ function Ruvex:CreateWindow(config)
                     Size = UDim2.new(1, -35, 0, 20),
                     Position = UDim2.new(0, 0, 0, 0),
                     Text = colorName,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 13,
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -1410,16 +1429,17 @@ function Ruvex:CreateWindow(config)
                 })
                 
                 -- Rainbow animation for color picker
-                coroutine.wrap(function()
-                    while colorDisplay.Parent do
-                        if colorPicker.Open then
-                            colorDisplay.BackgroundColor3 = Color3.fromHSV(Ruvex.RainbowColorValue, 1, 1)
-                            wait(0.1)
-                        else
-                            wait(1)
-                        end
+                local colorConnection
+                colorConnection = RunService.Heartbeat:Connect(function()
+                    if not colorDisplay.Parent then
+                        colorConnection:Disconnect()
+                        return
                     end
-                end)()
+                    
+                    if colorPicker.Open then
+                        colorDisplay.BackgroundColor3 = Color3.fromHSV(Ruvex.RainbowColorValue, 1, 1)
+                    end
+                end)
                 
                 colorDisplay.MouseButton1Click:Connect(function()
                     colorPicker.Open = not colorPicker.Open
@@ -1480,7 +1500,7 @@ function Ruvex:CreateWindow(config)
                     Size = UDim2.new(1, -80, 1, 0),
                     Position = UDim2.new(0, 0, 0, 0),
                     Text = keybindName,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 13,
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -1496,7 +1516,7 @@ function Ruvex:CreateWindow(config)
                     Size = UDim2.new(0, 75, 0, 25),
                     Position = UDim2.new(1, -75, 0.5, -12.5),
                     Text = tostring(keybindDefault):gsub("Enum.KeyCode.", ""),
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = 11,
                     Theme = {
                         BackgroundColor3 = "Tertiary",
@@ -1558,7 +1578,7 @@ function Ruvex:CreateWindow(config)
                     Parent = sectionContent,
                     Size = UDim2.new(1, 0, 0, 20),
                     Text = labelText,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.SourceSans,
                     TextSize = labelSize,
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -1642,7 +1662,7 @@ function Ruvex:CreateWindow(config)
             Size = UDim2.new(1, -20, 0, 25),
             Position = UDim2.new(0, 10, 0, 10),
             Text = title,
-            Font = Enum.Font.GothamBold,
+            Font = Enum.Font.SourceSansBold,
             TextSize = 14,
             BackgroundTransparency = 1,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -1657,7 +1677,7 @@ function Ruvex:CreateWindow(config)
             Size = UDim2.new(1, -20, 0, 35),
             Position = UDim2.new(0, 10, 0, 35),
             Text = text,
-            Font = Enum.Font.Gotham,
+            Font = Enum.Font.SourceSans,
             TextSize = 12,
             BackgroundTransparency = 1,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -1672,9 +1692,11 @@ function Ruvex:CreateWindow(config)
         Ruvex:Tween(notificationFrame, 0.3, {Position = UDim2.new(1, -310, 1, -100)})
         
         -- Auto remove
-        wait(duration)
-        Ruvex:Tween(notificationFrame, 0.3, {Position = UDim2.new(1, 10, 1, -100)}, Enum.EasingStyle.Back, Enum.EasingDirection.In, function()
-            notificationFrame:Destroy()
+        task.spawn(function()
+            task.wait(duration)
+            Ruvex:Tween(notificationFrame, 0.3, {Position = UDim2.new(1, 10, 1, -100)}, Enum.EasingStyle.Back, Enum.EasingDirection.In, function()
+                notificationFrame:Destroy()
+            end)
         end)
     end
     
