@@ -1,3 +1,24 @@
+--[
+   ▄████████ ███    █▄   ▄█    █▄     ▄████████ ▀████    ▐████▀           
+  ███    ███ ███    ███ ███    ███   ███    ███   ███▌   ████             
+  ███    ███ ███    ███ ███    ███   ███    █▀     ███  ▐███                
+ ▄███▄▄▄▄██▀ ███    ███ ███    ███  ▄███▄▄▄         ███▄███                
+▀▀███▀▀▀▀▀   ███    ███ ███    ███ ▀▀███▀▀▀         ▄██▀██▄               
+▀███████████ ███    ███ ███    ███   ███    █▄    ▐███   ███                
+  ███    ███ ███    ███ ███    ███   ███    ███   ███     ███              
+  ███    ███ ████████▀   ▀██████▀    ██████████ ▄███       ███▄
+          
+  ███    █                                                                
+  ███    █▄   ▄█  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄  ▄▄                                                          
+  ███    ███ ███  Made by: elldries  █████                                                          
+  ███    ███ ███  Discord: elldries  ██████████▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄                                                        
+  ███    ███ ███  Our dicord server: https://discord.gg/ZRzAUtZsBj                                                          
+  ███    ███ ███  ▄                                                          
+  ███    ███ ███  █████▄▄▄▄▄▄                                                            
+  ███    ███ ███  open source <3                                                            
+  ████████▀  █▀                     
+--]                                                   
+
 -- RUVEX UI LIBRARY
 -- Comprehensive Roblox UI Library combining Mercury, Flux, Cerberus, Criminality, PPHud, and Luminosity
 -- Red, Dark, Black and White Theme
@@ -354,11 +375,16 @@ function Ruvex:Window(options)
         SliceCenter = Rect.new(10, 10, 118, 118)
     })
     
-    mainFrame:fade(true, nil, 0.3, true)
-    mainFrame:fade(false, nil, 0.5)
-    mainFrame:tween({Size = options.Size, Length = 0.4}, function()
+    -- Improved opening animation
+    mainFrame.BackgroundTransparency = 1
+    mainFrame.Size = UDim2.new(0, 50, 0, 50)
+    mainFrame:tween({BackgroundTransparency = 0, Size = options.Size, Length = 0.6, Style = Enum.EasingStyle.Back, Direction = Enum.EasingDirection.Out}, function()
         mainFrame.ClipsDescendants = false
     end)
+    
+    -- Animate shadow
+    mainShadow.ImageTransparency = 1
+    mainShadow:tween({ImageTransparency = 0.8, Length = 0.8})
     
     -- Title Bar
     local titleBar = mainFrame:create("Frame", {
@@ -398,32 +424,78 @@ function Ruvex:Window(options)
         PaddingLeft = UDim.new(0, 15)
     })
     
-    -- Close Button
-    local closeButton = titleBar:create("TextButton", {
+    -- Window Controls Container
+    local controlsContainer = titleBar:create("Frame", {
         AnchorPoint = Vector2.new(1, 0.5),
-        Position = UDim2.new(1, -10, 0.5, 0),
-        Size = UDim2.new(0, 25, 0, 25),
-        Theme = {
-            BackgroundColor3 = "Tertiary",
-            TextColor3 = "StrongText"
-        },
-        Text = "×",
-        TextSize = 18,
+        Position = UDim2.new(1, -8, 0.5, 0),
+        Size = UDim2.new(0, 65, 0, 22),
+        BackgroundTransparency = 1
+    })
+    
+    -- Minimize Button
+    local minimizeButton = controlsContainer:create("TextButton", {
+        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(0, 28, 0, 22),
+        Theme = {BackgroundColor3 = "Secondary"},
+        BackgroundTransparency = 0.3,
+        Text = "−",
+        Theme = {TextColor3 = "StrongText"},
+        TextSize = 16,
         Font = Enum.Font.GothamBold
-    }):round(4)
+    }):round(6)
+    
+    minimizeButton:stroke(Ruvex.Themes.Divider, 0.5)
+    
+    -- Close Button  
+    local closeButton = controlsContainer:create("TextButton", {
+        Position = UDim2.new(0, 35, 0, 0),
+        Size = UDim2.new(0, 28, 0, 22),
+        Theme = {BackgroundColor3 = "Tertiary"},
+        BackgroundTransparency = 0.1,
+        Text = "×",
+        Theme = {TextColor3 = "StrongText"},
+        TextSize = 16,
+        Font = Enum.Font.GothamBold
+    }):round(6)
+    
+    closeButton:stroke(Ruvex.Themes.Tertiary, 0.5)
+    
+    -- Minimize functionality
+    local isMinimized = false
+    minimizeButton.MouseButton1Click:Connect(function()
+        if not isMinimized then
+            mainFrame:tween({Size = UDim2.new(options.Size.X.Scale, options.Size.X.Offset, 0, 35)}, function()
+                isMinimized = true
+            end)
+            minimizeButton.Text = "+"
+        else
+            mainFrame:tween({Size = options.Size}, function()
+                isMinimized = false
+            end)
+            minimizeButton.Text = "−"
+        end
+    end)
+    
+    minimizeButton.MouseEnter:Connect(function()
+        minimizeButton:tween{BackgroundTransparency = 0.1, BackgroundColor3 = Ruvex.Themes.Secondary}
+    end)
+    
+    minimizeButton.MouseLeave:Connect(function()
+        minimizeButton:tween{BackgroundTransparency = 0.3, BackgroundColor3 = Ruvex.Themes.Secondary}
+    end)
     
     closeButton.MouseButton1Click:Connect(function()
-        mainFrame:tween({Size = UDim2.new()}, function()
+        mainFrame:tween({Size = UDim2.new(), Rotation = 5}, function()
             gui:Destroy()
         end)
     end)
     
     closeButton.MouseEnter:Connect(function()
-        closeButton:tween{BackgroundColor3 = Ruvex:lighten(Ruvex.Themes.Tertiary, 15)}
+        closeButton:tween{BackgroundTransparency = 0, BackgroundColor3 = Color3.fromRGB(220, 38, 38)}
     end)
     
     closeButton.MouseLeave:Connect(function()
-        closeButton:tween{BackgroundColor3 = Ruvex.Themes.Tertiary}
+        closeButton:tween{BackgroundTransparency = 0.1, BackgroundColor3 = Ruvex.Themes.Tertiary}
     end)
     
     -- Tab Container
@@ -451,12 +523,23 @@ function Ruvex:Window(options)
         PaddingBottom = UDim.new(0, 5)
     })
     
-    -- Content Area
+    -- Content Area with Background Pattern
     local contentArea = mainFrame:create("Frame", {
         Position = UDim2.new(0, 10, 0, 90),
         Size = UDim2.new(1, -20, 1, -100),
         Theme = {BackgroundColor3 = "Background"},
         BackgroundTransparency = 1
+    })
+    
+    -- Add subtle background pattern
+    local backgroundPattern = contentArea:create("ImageLabel", {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://2151741365",
+        ImageTransparency = 0.95,
+        ScaleType = Enum.ScaleType.Tile,
+        TileSize = UDim2.new(0, 200, 0, 200),
+        ZIndex = 0
     })
     
     -- Make draggable
@@ -481,56 +564,141 @@ function Ruvex:Window(options)
     
     -- Notification Function
     function window:Notification(title, description, duration)
-        duration = duration or 3
+        duration = duration or 4
         
         local notification = notificationHolder:create("Frame", {
-            Size = UDim2.new(1, 0, 0, 80),
-            Theme = {BackgroundColor3 = "Secondary"},
-            BackgroundTransparency = 1
+            Size = UDim2.new(1, 0, 0, 85),
+            Theme = {BackgroundColor3 = "Main"},
+            BackgroundTransparency = 0,
+            Position = UDim2.new(1, 20, 0, 0),
+            ZIndex = 1000
         }):round(8)
+        
+        -- Add shadow effect
+        local shadow = notification:create("ImageLabel", {
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            BackgroundTransparency = 1,
+            Position = UDim2.new(0.5, 2, 0.5, 2),
+            Size = UDim2.new(1, 20, 1, 20),
+            ZIndex = 999,
+            Image = "rbxassetid://1316045217",
+            ImageColor3 = Color3.fromRGB(0, 0, 0),
+            ImageTransparency = 0.85,
+            ScaleType = Enum.ScaleType.Slice,
+            SliceCenter = Rect.new(10, 10, 118, 118)
+        })
         
         local notificationStroke = notification:create("UIStroke", {
             Color = Ruvex.Themes.Tertiary,
-            Thickness = 2
+            Thickness = 1,
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        })
+        
+        -- Progress bar at top
+        local progressBar = notification:create("Frame", {
+            Position = UDim2.new(0, 0, 0, 0),
+            Size = UDim2.new(1, 0, 0, 3),
+            Theme = {BackgroundColor3 = "Tertiary"},
+            BorderSizePixel = 0
+        })
+        
+        local progressCorner = progressBar:create("UICorner", {
+            CornerRadius = UDim.new(0, 8)
+        })
+        
+        local progressHiding = progressBar:create("Frame", {
+            Position = UDim2.new(0, 0, 1, -2),
+            Size = UDim2.new(1, 0, 0, 8),
+            Theme = {BackgroundColor3 = "Tertiary"},
+            BorderSizePixel = 0
+        })
+        
+        local notificationIcon = notification:create("Frame", {
+            Position = UDim2.new(0, 15, 0, 15),
+            Size = UDim2.new(0, 20, 0, 20),
+            Theme = {BackgroundColor3 = "Tertiary"},
+            BorderSizePixel = 0
+        }):round(10)
+        
+        local iconText = notificationIcon:create("TextLabel", {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Text = "i",
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+            TextSize = 14,
+            Font = Enum.Font.GothamBold,
+            TextXAlignment = Enum.TextXAlignment.Center,
+            TextYAlignment = Enum.TextYAlignment.Center
         })
         
         local notificationTitle = notification:create("TextLabel", {
-            Position = UDim2.new(0, 15, 0, 10),
-            Size = UDim2.new(1, -30, 0, 20),
-            Theme = {
-                BackgroundColor3 = "Secondary",
-                TextColor3 = "StrongText"
-            },
+            Position = UDim2.new(0, 45, 0, 12),
+            Size = UDim2.new(1, -70, 0, 22),
             BackgroundTransparency = 1,
             Text = title,
+            Theme = {TextColor3 = "StrongText"},
             TextSize = 14,
             Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextYAlignment = Enum.TextYAlignment.Center
         })
         
         local notificationDesc = notification:create("TextLabel", {
-            Position = UDim2.new(0, 15, 0, 35),
-            Size = UDim2.new(1, -30, 0, 35),
-            Theme = {
-                BackgroundColor3 = "Secondary",
-                TextColor3 = "WeakText"
-            },
+            Position = UDim2.new(0, 45, 0, 35),
+            Size = UDim2.new(1, -70, 0, 40),
             BackgroundTransparency = 1,
             Text = description,
+            Theme = {TextColor3 = "WeakText"},
             TextSize = 12,
             Font = Enum.Font.Gotham,
             TextXAlignment = Enum.TextXAlignment.Left,
+            TextYAlignment = Enum.TextYAlignment.Top,
             TextWrapped = true
         })
         
-        notification:tween{BackgroundTransparency = 0}
+        local closeButton = notification:create("TextButton", {
+            Position = UDim2.new(1, -30, 0, 8),
+            Size = UDim2.new(0, 22, 0, 22),
+            BackgroundTransparency = 1,
+            Text = "×",
+            Theme = {TextColor3 = "WeakText"},
+            TextSize = 16,
+            Font = Enum.Font.GothamBold,
+            TextXAlignment = Enum.TextXAlignment.Center,
+            TextYAlignment = Enum.TextYAlignment.Center
+        })
         
-        spawn(function()
-            wait(duration)
-            notification:tween({BackgroundTransparency = 1}, function()
+        closeButton.MouseEnter:Connect(function()
+            closeButton:tween{TextColor3 = Ruvex.Themes.Tertiary}
+        end)
+        
+        closeButton.MouseLeave:Connect(function()
+            closeButton:tween{TextColor3 = Ruvex.Themes.WeakText}
+        end)
+        
+        -- Slide in animation
+        notification:tween({Position = UDim2.new(0, 0, 0, 0)}, 0.4)
+        
+        -- Progress bar animation
+        progressBar:tween({Size = UDim2.new(0, 0, 0, 3)}, duration)
+        
+        local function dismissNotification()
+            notification:tween({Position = UDim2.new(1, 20, 0, 0)}, function()
                 notification:Destroy()
             end)
+        end
+        
+        closeButton.MouseButton1Click:Connect(dismissNotification)
+        
+        -- Auto dismiss
+        spawn(function()
+            wait(duration)
+            dismissNotification()
         end)
+        
+        return {
+            Dismiss = dismissNotification
+        }
     end
     
     -- Tab Function
@@ -1049,7 +1217,9 @@ function Ruvex:Window(options)
                     Font = Enum.Font.Gotham
                 })
                 
-                dropdownButton:stroke(Ruvex.Themes.Divider, 1)
+                dropdownButton:stroke(Ruvex.Themes.Divider, 0.5)
+                
+                local listFrame = nil
                 
                 local function toggleDropdown()
                     dropdownOpen = not dropdownOpen
@@ -1058,68 +1228,89 @@ function Ruvex:Window(options)
                         dropdownArrow:tween{Rotation = 180}
                         dropdownFrame:tween{Size = UDim2.new(1, 0, 0, 35 + (#options * 25) + 10)}
                         
-                        local listFrame = dropdownFrame:create("Frame", {
-                            Position = UDim2.new(0.4, 10, 0, 35),
-                            Size = UDim2.new(0.6, -10, 0, (#options * 25) + 10),
-                            Theme = {BackgroundColor3 = "Main"},
-                            ZIndex = 10
-                        }):round(4)
-                        
-                        listFrame:stroke(Ruvex.Themes.Divider, 1)
-                        
-                        local listLayout = listFrame:create("UIListLayout", {
-                            SortOrder = Enum.SortOrder.LayoutOrder
-                        })
-                        
-                        for i, option in ipairs(options) do
-                            local optionButton = listFrame:create("TextButton", {
-                                Size = UDim2.new(1, 0, 0, 25),
-                                Theme = {
-                                    BackgroundColor3 = "Secondary",
-                                    TextColor3 = "StrongText"
-                                },
-                                BackgroundTransparency = (option == currentValue) and 0.3 or 1,
-                                Text = option,
-                                TextSize = 12,
-                                Font = Enum.Font.Gotham,
-                                TextXAlignment = Enum.TextXAlignment.Left
+                        if not listFrame then
+                            listFrame = dropdownFrame:create("Frame", {
+                                Position = UDim2.new(0.4, 10, 0, 35),
+                                Size = UDim2.new(0.6, -10, 0, (#options * 25) + 10),
+                                Theme = {BackgroundColor3 = "Main"},
+                                ZIndex = 10,
+                                BorderSizePixel = 0
+                            }):round(4)
+                            
+                            listFrame:stroke(Ruvex.Themes.Divider, 0.5)
+                            
+                            local listLayout = listFrame:create("UIListLayout", {
+                                SortOrder = Enum.SortOrder.LayoutOrder,
+                                Padding = UDim.new(0, 1)
                             })
                             
-                            local optionPadding = optionButton:create("UIPadding", {
-                                PaddingLeft = UDim.new(0, 10)
+                            local listPadding = listFrame:create("UIPadding", {
+                                PaddingTop = UDim.new(0, 3),
+                                PaddingBottom = UDim.new(0, 3)
                             })
                             
-                            optionButton.MouseButton1Click:Connect(function()
-                                currentValue = option
-                                dropdownButton.Text = option
-                                pcall(callback, currentValue)
+                            for i, option in ipairs(options) do
+                                local optionButton = listFrame:create("TextButton", {
+                                    Size = UDim2.new(1, 0, 0, 23),
+                                    Theme = {
+                                        BackgroundColor3 = "Secondary",
+                                        TextColor3 = "StrongText"
+                                    },
+                                    BackgroundTransparency = (option == currentValue) and 0.3 or 1,
+                                    Text = option,
+                                    TextSize = 12,
+                                    Font = Enum.Font.Gotham,
+                                    TextXAlignment = Enum.TextXAlignment.Left,
+                                    BorderSizePixel = 0
+                                }):round(2)
                                 
-                                dropdownOpen = false
-                                dropdownArrow:tween{Rotation = 0}
-                                dropdownFrame:tween{Size = UDim2.new(1, 0, 0, 35)}
-                                listFrame:Destroy()
-                            end)
-                            
-                            optionButton.MouseEnter:Connect(function()
-                                if option ~= currentValue then
-                                    optionButton:tween{BackgroundTransparency = 0.5}
-                                end
-                            end)
-                            
-                            optionButton.MouseLeave:Connect(function()
-                                if option ~= currentValue then
-                                    optionButton:tween{BackgroundTransparency = 1}
-                                end
-                            end)
+                                local optionPadding = optionButton:create("UIPadding", {
+                                    PaddingLeft = UDim.new(0, 10),
+                                    PaddingRight = UDim.new(0, 10)
+                                })
+                                
+                                optionButton.MouseButton1Click:Connect(function()
+                                    -- Update all option buttons
+                                    for _, child in pairs(listFrame:GetChildren()) do
+                                        if child:IsA("TextButton") then
+                                            child:tween{BackgroundTransparency = 1}
+                                        end
+                                    end
+                                    
+                                    optionButton:tween{BackgroundTransparency = 0.3}
+                                    currentValue = option
+                                    dropdownButton.Text = option
+                                    pcall(callback, currentValue)
+                                    
+                                    -- Close dropdown
+                                    wait(0.1)
+                                    dropdownOpen = false
+                                    dropdownArrow:tween{Rotation = 0}
+                                    dropdownFrame:tween{Size = UDim2.new(1, 0, 0, 35)}
+                                    listFrame.Visible = false
+                                end)
+                                
+                                optionButton.MouseEnter:Connect(function()
+                                    if option ~= currentValue then
+                                        optionButton:tween{BackgroundTransparency = 0.5}
+                                    end
+                                end)
+                                
+                                optionButton.MouseLeave:Connect(function()
+                                    if option ~= currentValue then
+                                        optionButton:tween{BackgroundTransparency = 1}
+                                    end
+                                end)
+                            end
                         end
+                        
+                        listFrame.Visible = true
                     else
                         dropdownArrow:tween{Rotation = 0}
                         dropdownFrame:tween{Size = UDim2.new(1, 0, 0, 35)}
                         
-                        for _, child in pairs(dropdownFrame:GetChildren()) do
-                            if child.Name == "Frame" and child ~= dropdownLabel and child ~= dropdownButton then
-                                child:Destroy()
-                            end
+                        if listFrame then
+                            listFrame.Visible = false
                         end
                     end
                 end
@@ -1175,7 +1366,7 @@ function Ruvex:Window(options)
                     BackgroundColor3 = currentValue
                 }):round(4)
                 
-                colorPreview:stroke(Ruvex.Themes.Divider, 1)
+                colorPreview:stroke(Ruvex.Themes.Divider, 0.5)
                 
                 local colorButton = colorFrame:create("TextButton", {
                     Position = UDim2.new(1, -50, 0.5, 0),
@@ -1189,39 +1380,145 @@ function Ruvex:Window(options)
                     local colorPickerFrame = gui:create("Frame", {
                         Position = UDim2.new(0.5, 0, 0.5, 0),
                         AnchorPoint = Vector2.new(0.5, 0.5),
-                        Size = UDim2.new(0, 300, 0, 200),
+                        Size = UDim2.new(0, 350, 0, 280),
                         Theme = {BackgroundColor3 = "Main"},
                         ZIndex = 100
                     }):round(8)
                     
-                    colorPickerFrame:stroke(Ruvex.Themes.Tertiary, 2)
+                    colorPickerFrame:stroke(Ruvex.Themes.Tertiary, 1)
+                    
+                    -- Add backdrop blur effect
+                    local backdrop = gui:create("Frame", {
+                        Size = UDim2.new(1, 0, 1, 0),
+                        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+                        BackgroundTransparency = 0.3,
+                        ZIndex = 99
+                    })
                     
                     local colorPickerTitle = colorPickerFrame:create("TextLabel", {
                         Position = UDim2.new(0, 15, 0, 10),
-                        Size = UDim2.new(1, -30, 0, 20),
+                        Size = UDim2.new(1, -30, 0, 25),
                         Theme = {
                             BackgroundColor3 = "Main",
                             TextColor3 = "StrongText"
                         },
                         BackgroundTransparency = 1,
-                        Text = "Color Picker",
-                        TextSize = 14,
+                        Text = "Color Picker - " .. text,
+                        TextSize = 16,
                         Font = Enum.Font.GothamBold,
                         TextXAlignment = Enum.TextXAlignment.Left
                     })
                     
+                    -- Color wheel/gradient area
+                    local colorGradient = colorPickerFrame:create("Frame", {
+                        Position = UDim2.new(0, 15, 0, 50),
+                        Size = UDim2.new(0, 200, 0, 150),
+                        Theme = {BackgroundColor3 = "Secondary"}
+                    }):round(6)
+                    
+                    local hueGradient = colorGradient:create("UIGradient", {
+                        Color = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, Color3.fromHSV(0, 1, 1)),
+                            ColorSequenceKeypoint.new(0.17, Color3.fromHSV(0.17, 1, 1)),
+                            ColorSequenceKeypoint.new(0.33, Color3.fromHSV(0.33, 1, 1)),
+                            ColorSequenceKeypoint.new(0.5, Color3.fromHSV(0.5, 1, 1)),
+                            ColorSequenceKeypoint.new(0.67, Color3.fromHSV(0.67, 1, 1)),
+                            ColorSequenceKeypoint.new(0.83, Color3.fromHSV(0.83, 1, 1)),
+                            ColorSequenceKeypoint.new(1, Color3.fromHSV(1, 1, 1))
+                        })
+                    })
+                    
+                    colorGradient:stroke(Ruvex.Themes.Divider, 0.5)
+                    
+                    -- Current color preview (larger)
+                    local currentColorPreview = colorPickerFrame:create("Frame", {
+                        Position = UDim2.new(0, 230, 0, 50),
+                        Size = UDim2.new(0, 100, 0, 50),
+                        BackgroundColor3 = currentValue
+                    }):round(6)
+                    
+                    currentColorPreview:stroke(Ruvex.Themes.Divider, 0.5)
+                    
+                    -- RGB input fields
+                    local rgbContainer = colorPickerFrame:create("Frame", {
+                        Position = UDim2.new(0, 230, 0, 110),
+                        Size = UDim2.new(0, 100, 0, 90),
+                        BackgroundTransparency = 1
+                    })
+                    
+                    local rgbList = rgbContainer:create("UIListLayout", {
+                        SortOrder = Enum.SortOrder.LayoutOrder,
+                        Padding = UDim.new(0, 5)
+                    })
+                    
+                    local r, g, b = math.floor(currentValue.R * 255), math.floor(currentValue.G * 255), math.floor(currentValue.B * 255)
+                    
+                    local function createColorInput(name, value, index)
+                        local inputFrame = rgbContainer:create("Frame", {
+                            Size = UDim2.new(1, 0, 0, 25),
+                            BackgroundTransparency = 1,
+                            LayoutOrder = index
+                        })
+                        
+                        local label = inputFrame:create("TextLabel", {
+                            Size = UDim2.new(0, 20, 1, 0),
+                            BackgroundTransparency = 1,
+                            Text = name .. ":",
+                            Theme = {TextColor3 = "StrongText"},
+                            TextSize = 12,
+                            Font = Enum.Font.Gotham,
+                            TextXAlignment = Enum.TextXAlignment.Left
+                        })
+                        
+                        local input = inputFrame:create("TextBox", {
+                            Position = UDim2.new(0, 25, 0, 0),
+                            Size = UDim2.new(1, -25, 1, 0),
+                            Theme = {
+                                BackgroundColor3 = "Secondary",
+                                TextColor3 = "StrongText"
+                            },
+                            Text = tostring(value),
+                            TextSize = 12,
+                            Font = Enum.Font.Gotham,
+                            TextXAlignment = Enum.TextXAlignment.Center
+                        }):round(4)
+                        
+                        input:stroke(Ruvex.Themes.Divider, 0.5)
+                        
+                        return input
+                    end
+                    
+                    local rInput = createColorInput("R", r, 1)
+                    local gInput = createColorInput("G", g, 2)
+                    local bInput = createColorInput("B", b, 3)
+                    
+                    local function updateColorFromRGB()
+                        local newR = math.clamp(tonumber(rInput.Text) or 0, 0, 255)
+                        local newG = math.clamp(tonumber(gInput.Text) or 0, 0, 255)
+                        local newB = math.clamp(tonumber(bInput.Text) or 0, 0, 255)
+                        
+                        currentValue = Color3.fromRGB(newR, newG, newB)
+                        currentColorPreview:tween{BackgroundColor3 = currentValue}
+                        colorPreview:tween{BackgroundColor3 = currentValue}
+                        pcall(callback, currentValue)
+                    end
+                    
+                    rInput.FocusLost:Connect(updateColorFromRGB)
+                    gInput.FocusLost:Connect(updateColorFromRGB)
+                    bInput.FocusLost:Connect(updateColorFromRGB)
+                    
                     -- Rainbow mode controls
                     local rainbowToggle = colorPickerFrame:create("TextButton", {
-                        Position = UDim2.new(0, 15, 0, 40),
-                        Size = UDim2.new(0, 80, 0, 25),
+                        Position = UDim2.new(0, 15, 0, 215),
+                        Size = UDim2.new(0, 90, 0, 30),
                         Theme = {
-                            BackgroundColor3 = "Secondary",
+                            BackgroundColor3 = rainbowMode and "Tertiary" or "Secondary",
                             TextColor3 = "StrongText"
                         },
-                        Text = "Rainbow",
+                        Text = "Rainbow Mode",
                         TextSize = 12,
                         Font = Enum.Font.Gotham
-                    }):round(4)
+                    }):round(6)
                     
                     rainbowToggle.MouseButton1Click:Connect(function()
                         rainbowMode = not rainbowMode
@@ -1229,10 +1526,19 @@ function Ruvex:Window(options)
                             rainbowToggle:tween{BackgroundColor3 = Ruvex.Themes.Tertiary}
                             spawn(function()
                                 while rainbowMode do
-                                    currentValue = Color3.fromHSV(Ruvex.RainbowColorValue, 1, 1)
-                                    colorPreview:tween{BackgroundColor3 = currentValue}
-                                    pcall(callback, currentValue)
-                                    wait(0.1)
+                                    local newColor = Color3.fromHSV(Ruvex.RainbowColorValue, 1, 1)
+                                    currentValue = newColor
+                                    currentColorPreview:tween{BackgroundColor3 = newColor}
+                                    colorPreview:tween{BackgroundColor3 = newColor}
+                                    
+                                    -- Update RGB inputs
+                                    local nr, ng, nb = math.floor(newColor.R * 255), math.floor(newColor.G * 255), math.floor(newColor.B * 255)
+                                    rInput.Text = tostring(nr)
+                                    gInput.Text = tostring(ng)
+                                    bInput.Text = tostring(nb)
+                                    
+                                    pcall(callback, newColor)
+                                    wait(0.05)
                                 end
                             end)
                         else
@@ -1242,8 +1548,9 @@ function Ruvex:Window(options)
                     
                     -- Close button
                     local closeButton = colorPickerFrame:create("TextButton", {
-                        Position = UDim2.new(1, -35, 0, 5),
-                        Size = UDim2.new(0, 30, 0, 30),
+                        Position = UDim2.new(1, -35, 0, 8),
+                        Size = UDim2.new(0, 25, 0, 25),
+                        BackgroundTransparency = 0.8,
                         Theme = {
                             BackgroundColor3 = "Tertiary",
                             TextColor3 = "StrongText"
@@ -1251,10 +1558,23 @@ function Ruvex:Window(options)
                         Text = "×",
                         TextSize = 16,
                         Font = Enum.Font.GothamBold
-                    }):round(4)
+                    }):round(6)
                     
-                    closeButton.MouseButton1Click:Connect(function()
+                    local function closeColorPicker()
+                        rainbowMode = false
                         colorPickerFrame:Destroy()
+                        backdrop:Destroy()
+                    end
+                    
+                    closeButton.MouseButton1Click:Connect(closeColorPicker)
+                    backdrop.MouseButton1Click:Connect(closeColorPicker)
+                    
+                    closeButton.MouseEnter:Connect(function()
+                        closeButton:tween{BackgroundTransparency = 0}
+                    end)
+                    
+                    closeButton.MouseLeave:Connect(function()
+                        closeButton:tween{BackgroundTransparency = 0.8}
                     end)
                 end)
                 
@@ -1328,20 +1648,20 @@ function Ruvex:Window(options)
                     Font = Enum.Font.Gotham
                 }):round(4)
                 
-                keybindButton:stroke(Ruvex.Themes.Divider, 1)
+                keybindButton:stroke(Ruvex.Themes.Divider, 0.5)
                 
                 keybindButton.MouseButton1Click:Connect(function()
                     if not isListening then
                         isListening = true
                         keybindButton.Text = "..."
-                        keybindButton:stroke(Ruvex.Themes.Tertiary, 1)
+                        keybindButton:stroke(Ruvex.Themes.Tertiary, 0.5)
                         
                         local connection
                         connection = UserInputService.InputBegan:Connect(function(input)
                             if input.UserInputType == Enum.UserInputType.Keyboard then
                                 currentKey = input.KeyCode
                                 keybindButton.Text = input.KeyCode.Name
-                                keybindButton:stroke(Ruvex.Themes.Divider, 1)
+                                keybindButton:stroke(Ruvex.Themes.Divider, 0.5)
                                 isListening = false
                                 connection:Disconnect()
                             end
