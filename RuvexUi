@@ -9,20 +9,15 @@
   ███    ███ ████████▀   ▀██████▀    ██████████ ▄███       ███▄
           
   ███    █                                                                
-  ███    █▄   ▄█  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄  ▄▄                                                          
-  ███    ███ ███  Made by: elldries  █████                                                          
-  ███    ███ ███  Discord: elldries  ██████████▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄                                                        
+  ███    █▄   ▄█                                                          
+  ███    ███ ███  Made by: elldries                                                          
+  ███    ███ ███  Discord: elldries                                                         
   ███    ███ ███  Our dicord server: https://discord.gg/ZRzAUtZsBj                                                          
-  ███    ███ ███  ▄                                                          
-  ███    ███ ███  █████▄▄▄▄▄▄                                                            
+  ███    ███ ███                                                            
+  ███    ███ ███                                                              
   ███    ███ ███  open source <3                                                            
   ████████▀  █▀                     
 --]                                                   
-
--- RUVEX UI LIBRARY
--- Comprehensive Roblox UI Library combining Mercury, Flux, Cerberus, Criminality, PPHud, and Luminosity
--- Red, Dark, Black and White Theme
--- Compatible with all Roblox executors
 
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -30,7 +25,7 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
+local Mouse = LocalPlayer and LocalPlayer:GetMouse() or nil
 local TextService = game:GetService("TextService")
 local GuiService = game:GetService("GuiService")
 
@@ -109,6 +104,7 @@ function Ruvex:lighten(color, f)
 end
 
 function Ruvex:GetXY(GuiObject)
+    if not Mouse then return 0, 0 end
     local Max, May = GuiObject.AbsoluteSize.X, GuiObject.AbsoluteSize.Y
     local Px, Py = math.clamp(Mouse.X - GuiObject.AbsolutePosition.X, 0, Max), math.clamp(Mouse.Y - GuiObject.AbsolutePosition.Y, 0, May)
     return Px/Max, Py/May
@@ -335,7 +331,7 @@ function Ruvex:Window(options)
     }, options)
     
     local gui = Ruvex:create("ScreenGui", {
-        Parent = (RunService:IsStudio() and LocalPlayer.PlayerGui) or CoreGui,
+        Parent = (RunService:IsStudio() and LocalPlayer and LocalPlayer.PlayerGui) or CoreGui,
         ZIndexBehavior = Enum.ZIndexBehavior.Global,
         Name = "RuvexUI",
         IgnoreGuiInset = true,
@@ -1429,6 +1425,24 @@ function Ruvex:Window(options)
                     })
                     
                     colorGradient:stroke(Ruvex.Themes.Divider, 0.5)
+                    
+                    -- Color gradient interaction
+                    colorGradient.InputBegan:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                            local x, y = Ruvex:GetXY(colorGradient)
+                            currentValue = Color3.fromHSV(x, 1, 1-y)
+                            currentColorPreview:tween{BackgroundColor3 = currentValue}
+                            colorPreview:tween{BackgroundColor3 = currentValue}
+                            
+                            -- Update RGB inputs
+                            local nr, ng, nb = math.floor(currentValue.R * 255), math.floor(currentValue.G * 255), math.floor(currentValue.B * 255)
+                            if rInput then rInput.Text = tostring(nr) end
+                            if gInput then gInput.Text = tostring(ng) end
+                            if bInput then bInput.Text = tostring(nb) end
+                            
+                            pcall(callback, currentValue)
+                        end
+                    end)
                     
                     -- Current color preview (larger)
                     local currentColorPreview = colorPickerFrame:create("Frame", {
