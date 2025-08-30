@@ -1,18 +1,3 @@
---[[
-  ____  _   ___     ________   __
- |  _ \| | | \ \   / /  ____| \ \   / /
- | |_) | | | |\ \ / /| |__     \ \_/ / 
- |  _ <| | | | \ V / |  __|     \   /  
- | |_) | |_| |  | |  | |____     | |   
- |____/ \___/   |_|  |______|    |_|   
-
-Ruvex UI Library - Advanced Roblox UI System
-Combining ALL functionality from Mercury, Flux, Cerberus, Criminality, PPHud & Luminosity
-Color Scheme: Red, Dark, Black, White
-Compatible with all Roblox executors
-Cross-device support with responsive design
-]]
-
 local Ruvex = {
     RainbowColorValue = 0,
     HueSelectionPosition = 0,
