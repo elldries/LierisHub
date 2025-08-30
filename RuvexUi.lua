@@ -89,7 +89,7 @@ end
 function Ruvex:GetXY(GuiObject)
     if not Mouse then return 0, 0 end
     local Max, May = GuiObject.AbsoluteSize.X, GuiObject.AbsoluteSize.Y
-    local Px, Py = math.clamp(Mouse.X - GuiObject.AbsolutePosition.X, 0, Max), math.clamp(Mouse.Y - GuiObject.AbsolutePosition.Y, 0, May)
+    local Px, Py = math.clamp(Mouse.X - GuiObject.AbsolutePosition.X, 0, Max), math.clamp(Mouse.Y - GuiObject.AbsolutePosition.Y, 0, May))
     return Px/Max, Py/May
 end
 
