@@ -1,3 +1,23 @@
+-- Ruvex UI Library - Comprehensive Roblox UI Library
+-- Combines elements from Mercury, Flux, Cerberus, Criminality, and PPHud libraries
+-- Features: Red/Black/White theme, smooth transitions, modern design, full compatibility
+
+local Ruvex = {
+    RainbowColorValue = 0,
+    HueSelectionPosition = 0,
+    Flags = {},
+    ThemeObjects = {
+        Main = {},
+        Secondary = {},
+        Accent = {},
+        Text = {},
+        Border = {}
+    },
+    CurrentTheme = nil,
+    Toggled = true,
+    ToggleKey = Enum.KeyCode.RightControl
+}
+
 -- Services
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -6,191 +26,150 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local TextService = game:GetService("TextService")
 local GuiService = game:GetService("GuiService")
-local HTTPService = game:GetService("HttpService")
-
--- Compatibility
-local request = syn and syn.request or http and http.request or http_request or request or httprequest
-local getcustomasset = getcustomasset or getsynasset
-local isfolder = isfolder or syn_isfolder or is_folder
-local makefolder = makefolder or make_folder or createfolder or create_folder
 
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
-local ViewportSize = workspace.CurrentCamera.ViewportSize
 
--- Ruvex Library
-local Ruvex = {
-    Version = "3.0.0",
-    RainbowColorValue = 0,
-    HueSelectionPosition = 0,
-    Flags = {},
-    
-    -- Theme System (Red/Dark/Black/White)
-    Themes = {
-        Ruvex = {
-            -- Main Colors
-            Background = Color3.fromRGB(15, 15, 17),
-            Main = Color3.fromRGB(20, 20, 22),
-            Secondary = Color3.fromRGB(30, 30, 32),
-            Tertiary = Color3.fromRGB(40, 40, 42),
-            
-            -- Accent Colors
-            Primary = Color3.fromRGB(220, 50, 60),
-            PrimaryDark = Color3.fromRGB(180, 40, 50),
-            PrimaryLight = Color3.fromRGB(255, 80, 90),
-            
-            -- Text Colors
-            TextPrimary = Color3.fromRGB(255, 255, 255),
-            TextSecondary = Color3.fromRGB(200, 200, 200),
-            TextTertiary = Color3.fromRGB(150, 150, 150),
-            TextDisabled = Color3.fromRGB(100, 100, 100),
-            
-            -- Border and Effects
-            Border = Color3.fromRGB(60, 60, 62),
-            BorderLight = Color3.fromRGB(80, 80, 82),
-            Hover = Color3.fromRGB(50, 50, 52),
-            Active = Color3.fromRGB(45, 45, 47),
-            
-            -- Status Colors
-            Success = Color3.fromRGB(50, 200, 50),
-            Warning = Color3.fromRGB(255, 200, 50),
-            Error = Color3.fromRGB(255, 100, 100),
-            Info = Color3.fromRGB(100, 150, 255)
-        }
-    },
-    
-    -- Settings
-    Settings = {
-        DragSpeed = 0.15,
-        AnimationSpeed = 0.25,
-        ToggleKey = Enum.KeyCode.Insert,
-        ConfigFolder = "RuvexConfigs",
-        DeviceCompatibility = true,
-        ResponsiveDesign = true
-    },
-    
-    -- Theme Objects for Live Updates
-    ThemeObjects = {},
-    
-    -- Current Theme
-    CurrentTheme = nil,
-    
-    -- Window Management
-    Windows = {},
-    CurrentWindow = nil,
-    
-    -- Component Counters
-    ComponentCount = 0,
-    TabCount = 0,
-    
-    -- Utilities
-    Utilities = {},
-    
-    -- Device Compatibility Detection
-    Device = {
-        IsMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled,
-        IsTablet = UserInputService.TouchEnabled and UserInputService.MouseEnabled,
-        IsDesktop = not UserInputService.TouchEnabled and UserInputService.MouseEnabled,
-        IsConsole = UserInputService.GamepadEnabled and not UserInputService.MouseEnabled,
-        
-        -- Screen dimensions
-        ScreenSize = ViewportSize,
-        IsSmallScreen = ViewportSize.X < 800 or ViewportSize.Y < 600,
-        ScaleFactor = math.min(ViewportSize.X / 1920, ViewportSize.Y / 1080)
+-- Ruvex Color Themes (Red/Black/White)
+Ruvex.Themes = {
+    Dark = {
+        Main = Color3.fromRGB(15, 15, 15),
+        Secondary = Color3.fromRGB(25, 25, 25),
+        Tertiary = Color3.fromRGB(35, 35, 35),
+        Accent = Color3.fromRGB(220, 50, 47),
+        AccentHover = Color3.fromRGB(255, 65, 62),
+        AccentDark = Color3.fromRGB(180, 40, 37),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(200, 200, 200),
+        TextDim = Color3.fromRGB(150, 150, 150),
+        Border = Color3.fromRGB(45, 45, 45),
+        BorderAccent = Color3.fromRGB(220, 50, 47),
+        Success = Color3.fromRGB(40, 180, 40),
+        Warning = Color3.fromRGB(255, 165, 0),
+        Error = Color3.fromRGB(220, 50, 47)
     }
 }
-Ruvex.__index = Ruvex
-Ruvex.CurrentTheme = Ruvex.Themes.Ruvex
+
+Ruvex.CurrentTheme = Ruvex.Themes.Dark
+
+-- Rainbow animation
+coroutine.wrap(function()
+    while wait() do
+        Ruvex.RainbowColorValue = Ruvex.RainbowColorValue + 1 / 255
+        Ruvex.HueSelectionPosition = Ruvex.HueSelectionPosition + 1
+
+        if Ruvex.RainbowColorValue >= 1 then
+            Ruvex.RainbowColorValue = 0
+        end
+
+        if Ruvex.HueSelectionPosition == 80 then
+            Ruvex.HueSelectionPosition = 0
+        end
+    end
+end)()
 
 -- Utility Functions
-function Ruvex.Utilities.Create(objectType, properties)
-    local object = Instance.new(objectType)
-    for property, value in pairs(properties or {}) do
-        if property == "Parent" then
-            continue
-        end
-        object[property] = value
-    end
-    if properties.Parent then
-        object.Parent = properties.Parent
-    end
-    return object
-end
-
-function Ruvex.Utilities.Tween(object, properties, duration, style, direction, callback)
-    duration = duration or Ruvex.Settings.AnimationSpeed
-    style = style or Enum.EasingStyle.Quad
-    direction = direction or Enum.EasingDirection.Out
+function Ruvex:Tween(object, duration, properties, easingStyle, easingDirection, callback)
+    duration = duration or 0.3
+    easingStyle = easingStyle or Enum.EasingStyle.Quad
+    easingDirection = easingDirection or Enum.EasingDirection.Out
     
-    local tween = TweenService:Create(object, TweenInfo.new(duration, style, direction), properties)
+    local tween = TweenService:Create(object, TweenInfo.new(duration, easingStyle, easingDirection), properties)
+    tween:Play()
+    
     if callback then
         tween.Completed:Connect(callback)
     end
-    tween:Play()
+    
     return tween
 end
 
-function Ruvex.Utilities.GetTextBounds(text, fontSize, font, frameSize)
-    local textSize = TextService:GetTextSize(text, fontSize, font, frameSize)
-    return textSize
-end
-
-function Ruvex.Utilities.RainbowColor()
-    local color = Color3.fromHSV((Ruvex.RainbowColorValue % 1), 1, 1)
-    return color
-end
-
-function Ruvex.Utilities.GetThemeColor(colorName)
-    return Ruvex.CurrentTheme[colorName] or Color3.new(1, 1, 1)
-end
-
-function Ruvex.Utilities.AddToThemeObjects(object, property, colorName)
-    if not Ruvex.ThemeObjects[colorName] then
-        Ruvex.ThemeObjects[colorName] = {}
+function Ruvex:CreateInstance(className, properties, children)
+    local instance = Instance.new(className)
+    
+    -- Default properties
+    if instance:IsA("GuiObject") then
+        instance.BorderSizePixel = 0
+        if instance:IsA("Frame") then
+            instance.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        elseif instance:IsA("TextButton") or instance:IsA("ImageButton") then
+            instance.AutoButtonColor = false
+            instance.Text = ""
+        elseif instance:IsA("TextLabel") then
+            instance.Text = ""
+            instance.Font = Enum.Font.SourceSans
+        end
     end
-    table.insert(Ruvex.ThemeObjects[colorName], {Object = object, Property = property})
-end
-
-function Ruvex.Utilities.UpdateTheme(themeName)
-    if Ruvex.Themes[themeName] then
-        Ruvex.CurrentTheme = Ruvex.Themes[themeName]
-        
-        for colorName, objects in pairs(Ruvex.ThemeObjects) do
-            local color = Ruvex.CurrentTheme[colorName]
-            if color then
-                for _, data in pairs(objects) do
-                    if data.Object and data.Object.Parent then
-                        data.Object[data.Property] = color
+    
+    -- Apply properties
+    if properties then
+        for property, value in pairs(properties) do
+            if property == "Theme" then
+                for themeProp, themeValue in pairs(value) do
+                    if type(themeValue) == "table" then
+                        local theme, modifier = themeValue[1], themeValue[2] or 0
+                        local color = Ruvex.CurrentTheme[theme]
+                        if modifier ~= 0 then
+                            color = Ruvex:ModifyColor(color, modifier)
+                        end
+                        instance[themeProp] = color
+                        table.insert(Ruvex.ThemeObjects[theme], {instance, themeProp, theme, modifier})
+                    else
+                        local color = Ruvex.CurrentTheme[themeValue]
+                        instance[themeProp] = color
+                        table.insert(Ruvex.ThemeObjects[themeValue], {instance, themeProp, themeValue, 0})
                     end
                 end
+            else
+                instance[property] = value
             end
         end
     end
-end
-
-function Ruvex.Utilities.ScaleSize(size)
-    if Ruvex.Device.IsSmallScreen then
-        return UDim2.new(size.X.Scale * 1.2, size.X.Offset * 1.2, size.Y.Scale * 1.2, size.Y.Offset * 1.2)
+    
+    -- Add children
+    if children then
+        for _, child in pairs(children) do
+            child.Parent = instance
+        end
     end
-    return size
+    
+    return instance
 end
 
-function Ruvex.Utilities.MakeDraggable(frame, dragFrame)
-    dragFrame = dragFrame or frame
+function Ruvex:CreateCorner(radius)
+    return Ruvex:CreateInstance("UICorner", {
+        CornerRadius = UDim.new(0, radius or 6)
+    })
+end
+
+function Ruvex:CreateStroke(color, thickness)
+    return Ruvex:CreateInstance("UIStroke", {
+        Color = color or Ruvex.CurrentTheme.Border,
+        Thickness = thickness or 1
+    })
+end
+
+function Ruvex:ModifyColor(color, factor)
+    local h, s, v = Color3.toHSV(color)
+    factor = factor / 100
+    if factor > 0 then
+        v = math.clamp(v + factor, 0, 1)
+    else
+        v = math.clamp(v + factor, 0, 1)
+    end
+    return Color3.fromHSV(h, s, v)
+end
+
+function Ruvex:MakeDraggable(frame, dragArea)
+    dragArea = dragArea or frame
     local dragging = false
-    local dragStart = nil
-    local startPos = nil
+    local dragInput, mousePos, framePos
     
-    local function updateInput(input)
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-    
-    dragFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+    dragArea.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
+            mousePos = input.Position
+            framePos = frame.Position
             
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
@@ -200,1255 +179,1718 @@ function Ruvex.Utilities.MakeDraggable(frame, dragFrame)
         end
     end)
     
-    dragFrame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            if dragging then
-                updateInput(input)
-            end
+    dragArea.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - mousePos
+            Ruvex:Tween(frame, 0.1, {
+                Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+            })
         end
     end)
 end
 
--- Rainbow Color Animation
-RunService.Heartbeat:Connect(function()
-    Ruvex.RainbowColorValue = Ruvex.RainbowColorValue + 0.01
-    if Ruvex.RainbowColorValue >= 1 then
-        Ruvex.RainbowColorValue = 0
-    end
-end)
-
--- Toggle Key Functionality
-UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Ruvex.Settings.ToggleKey then
-        for _, window in pairs(Ruvex.Windows) do
-            window.Visible = not window.Visible
-            window.MainFrame.Visible = window.Visible
-        end
-    end
-end)
-
--- Main Library Functions
-function Ruvex:CreateWindow(title, options)
-    options = options or {}
-    local windowId = #self.Windows + 1
+-- Main Window Creation
+function Ruvex:CreateWindow(config)
+    config = config or {}
+    local windowTitle = config.Name or "Ruvex"
+    local windowSize = config.Size or UDim2.new(0, 650, 0, 450)
+    local windowToggleKey = config.ToggleKey or Enum.KeyCode.RightControl
+    
+    Ruvex.ToggleKey = windowToggleKey
+    
+    local window = {}
+    window.Tabs = {}
+    window.CurrentTab = nil
     
     -- Create ScreenGui
-    local screenGui = self.Utilities.Create("ScreenGui", {
-        Name = "RuvexUI_" .. windowId,
+    local screenGui = Ruvex:CreateInstance("ScreenGui", {
+        Name = "RuvexUI",
         Parent = CoreGui,
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        IgnoreGuiInset = true,
-        DisplayOrder = 999
+        IgnoreGuiInset = true
     })
     
-    -- Calculate window size based on device
-    local windowSize = options.Size or (self.Device.IsSmallScreen and UDim2.new(0, 400, 0, 300) or UDim2.new(0, 500, 0, 400))
-    
-    -- Main Window Frame
-    local mainFrame = self.Utilities.Create("Frame", {
-        Name = "MainWindow",
+    -- Main Frame
+    local mainFrame = Ruvex:CreateInstance("Frame", {
+        Name = "MainFrame",
         Parent = screenGui,
-        AnchorPoint = Vector2.new(0.5, 0.5),
+        Size = windowSize,
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        Size = windowSize,
-        BackgroundColor3 = self.Utilities.GetThemeColor("Main"),
-        BorderSizePixel = 0,
-        ClipsDescendants = true
-    })
-    
-    -- Window Shadow
-    local shadowFrame = self.Utilities.Create("Frame", {
-        Name = "Shadow",
-        Parent = screenGui,
         AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.new(0.5, 3, 0.5, 3),
-        Size = windowSize,
-        BackgroundColor3 = Color3.new(0, 0, 0),
-        BackgroundTransparency = 0.5,
-        BorderSizePixel = 0,
-        ZIndex = mainFrame.ZIndex - 1
+        Theme = {
+            BackgroundColor3 = "Main"
+        },
+        ClipsDescendants = true
+    }, {
+        Ruvex:CreateCorner(8),
+        Ruvex:CreateStroke(Ruvex.CurrentTheme.Border, 1)
     })
     
-    -- Corner Rounding
-    local corner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(0, 8),
-        Parent = mainFrame
-    })
-    
-    local shadowCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(0, 8),
-        Parent = shadowFrame
-    })
+    -- Window Animation
+    mainFrame.Size = UDim2.new(0, 0, 0, 0)
+    Ruvex:Tween(mainFrame, 0.4, {Size = windowSize}, Enum.EasingStyle.Back)
     
     -- Title Bar
-    local titleBar = self.Utilities.Create("Frame", {
+    local titleBar = Ruvex:CreateInstance("Frame", {
         Name = "TitleBar",
         Parent = mainFrame,
-        Size = UDim2.new(1, 0, 0, 30),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Secondary"),
-        BorderSizePixel = 0
+        Size = UDim2.new(1, 0, 0, 35),
+        Theme = {
+            BackgroundColor3 = "Secondary"
+        }
+    }, {
+        Ruvex:CreateCorner(8),
+        Ruvex:CreateStroke(Ruvex.CurrentTheme.BorderAccent, 1)
     })
     
-    local titleCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(0, 8),
-        Parent = titleBar
+    -- Hide bottom corners of title bar
+    local titleBarBottom = Ruvex:CreateInstance("Frame", {
+        Name = "TitleBarBottom",
+        Parent = titleBar,
+        Size = UDim2.new(1, 0, 0, 8),
+        Position = UDim2.new(0, 0, 1, -8),
+        Theme = {
+            BackgroundColor3 = "Secondary"
+        }
     })
     
     -- Title Text
-    local titleLabel = self.Utilities.Create("TextLabel", {
-        Name = "Title",
+    local titleText = Ruvex:CreateInstance("TextLabel", {
+        Name = "TitleText",
         Parent = titleBar,
-        Position = UDim2.new(0, 10, 0, 0),
-        Size = UDim2.new(1, -70, 1, 0),
-        BackgroundTransparency = 1,
-        Text = title or "Ruvex Window",
-        TextColor3 = self.Utilities.GetThemeColor("TextPrimary"),
-        TextScaled = true,
+        Size = UDim2.new(1, -120, 1, 0),
+        Position = UDim2.new(0, 15, 0, 0),
+        Text = windowTitle,
+        Font = Enum.Font.GothamBold,
+        TextSize = 16,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.GothamBold
+        BackgroundTransparency = 1,
+        Theme = {
+            TextColor3 = "Text"
+        }
     })
     
-    -- Close Button
-    local closeButton = self.Utilities.Create("TextButton", {
-        Name = "CloseButton",
+    -- Window Controls
+    local controlsFrame = Ruvex:CreateInstance("Frame", {
+        Name = "Controls",
         Parent = titleBar,
-        AnchorPoint = Vector2.new(1, 0),
-        Position = UDim2.new(1, -5, 0, 5),
-        Size = UDim2.new(0, 20, 0, 20),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Error"),
-        BorderSizePixel = 0,
-        Text = "X",
-        TextColor3 = Color3.new(1, 1, 1),
-        TextScaled = true,
-        Font = Enum.Font.GothamBold
+        Size = UDim2.new(0, 100, 1, 0),
+        Position = UDim2.new(1, -100, 0, 0),
+        BackgroundTransparency = 1
     })
     
-    local closeCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(0, 4),
-        Parent = closeButton
+    local controlsLayout = Ruvex:CreateInstance("UIListLayout", {
+        Parent = controlsFrame,
+        FillDirection = Enum.FillDirection.Horizontal,
+        HorizontalAlignment = Enum.HorizontalAlignment.Right,
+        VerticalAlignment = Enum.VerticalAlignment.Center,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 8)
+    })
+    
+    local controlsPadding = Ruvex:CreateInstance("UIPadding", {
+        Parent = controlsFrame,
+        PaddingRight = UDim.new(0, 15)
     })
     
     -- Minimize Button
-    local minimizeButton = self.Utilities.Create("TextButton", {
+    local minimizeBtn = Ruvex:CreateInstance("TextButton", {
         Name = "MinimizeButton",
-        Parent = titleBar,
-        AnchorPoint = Vector2.new(1, 0),
-        Position = UDim2.new(1, -30, 0, 5),
+        Parent = controlsFrame,
         Size = UDim2.new(0, 20, 0, 20),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Warning"),
-        BorderSizePixel = 0,
-        Text = "-",
-        TextColor3 = Color3.new(1, 1, 1),
-        TextScaled = true,
-        Font = Enum.Font.GothamBold
+        Theme = {
+            BackgroundColor3 = "Tertiary"
+        },
+        LayoutOrder = 1
+    }, {
+        Ruvex:CreateCorner(4)
     })
     
-    local minimizeCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(0, 4),
-        Parent = minimizeButton
-    })
-    
-    -- Content Area
-    local contentFrame = self.Utilities.Create("Frame", {
-        Name = "Content",
-        Parent = mainFrame,
-        Position = UDim2.new(0, 0, 0, 30),
-        Size = UDim2.new(1, 0, 1, -30),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Background"),
-        BorderSizePixel = 0
-    })
-    
-    -- Tab Container (Mercury Style)
-    local tabContainer = self.Utilities.Create("Frame", {
-        Name = "TabContainer",
-        Parent = contentFrame,
-        Size = UDim2.new(1, 0, 0, 35),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Secondary"),
-        BorderSizePixel = 0
-    })
-    
-    local tabScrollFrame = self.Utilities.Create("ScrollingFrame", {
-        Name = "TabScrollFrame",
-        Parent = tabContainer,
-        Size = UDim2.new(1, -30, 1, 0),
-        Position = UDim2.new(0, 0, 0, 0),
+    local minimizeIcon = Ruvex:CreateInstance("TextLabel", {
+        Parent = minimizeBtn,
+        Size = UDim2.new(1, 0, 1, 0),
+        Text = "_",
+        Font = Enum.Font.GothamBold,
+        TextSize = 14,
         BackgroundTransparency = 1,
-        BorderSizePixel = 0,
+        Theme = {
+            TextColor3 = "Text"
+        }
+    })
+    
+    -- Close Button
+    local closeBtn = Ruvex:CreateInstance("TextButton", {
+        Name = "CloseButton",
+        Parent = controlsFrame,
+        Size = UDim2.new(0, 20, 0, 20),
+        BackgroundColor3 = Color3.fromRGB(220, 50, 47),
+        LayoutOrder = 2
+    }, {
+        Ruvex:CreateCorner(4)
+    })
+    
+    local closeIcon = Ruvex:CreateInstance("TextLabel", {
+        Parent = closeBtn,
+        Size = UDim2.new(1, 0, 1, 0),
+        Text = "×",
+        Font = Enum.Font.GothamBold,
+        TextSize = 16,
+        BackgroundTransparency = 1,
+        TextColor3 = Color3.fromRGB(255, 255, 255)
+    })
+    
+    -- Button Animations
+    minimizeBtn.MouseEnter:Connect(function()
+        Ruvex:Tween(minimizeBtn, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.AccentHover})
+    end)
+    
+    minimizeBtn.MouseLeave:Connect(function()
+        Ruvex:Tween(minimizeBtn, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Tertiary})
+    end)
+    
+    closeBtn.MouseEnter:Connect(function()
+        Ruvex:Tween(closeBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(255, 65, 62)})
+    end)
+    
+    closeBtn.MouseLeave:Connect(function()
+        Ruvex:Tween(closeBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(220, 50, 47)})
+    end)
+    
+    -- Tab Container
+    local tabContainer = Ruvex:CreateInstance("Frame", {
+        Name = "TabContainer",
+        Parent = mainFrame,
+        Size = UDim2.new(1, 0, 0, 30),
+        Position = UDim2.new(0, 0, 0, 35),
+        Theme = {
+            BackgroundColor3 = "Tertiary"
+        }
+    })
+    
+    local tabContainerStroke = Ruvex:CreateInstance("Frame", {
+        Name = "TabStroke",
+        Parent = tabContainer,
+        Size = UDim2.new(1, 0, 0, 1),
+        Position = UDim2.new(0, 0, 1, 0),
+        Theme = {
+            BackgroundColor3 = "Border"
+        }
+    })
+    
+    local tabScrolling = Ruvex:CreateInstance("ScrollingFrame", {
+        Name = "TabScrolling",
+        Parent = tabContainer,
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
         ScrollBarThickness = 0,
         ScrollingDirection = Enum.ScrollingDirection.X,
-        CanvasSize = UDim2.new(0, 0, 0, 0)
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.X
     })
     
-    local tabLayout = self.Utilities.Create("UIListLayout", {
-        Parent = tabScrollFrame,
+    local tabLayout = Ruvex:CreateInstance("UIListLayout", {
+        Parent = tabScrolling,
         FillDirection = Enum.FillDirection.Horizontal,
         SortOrder = Enum.SortOrder.LayoutOrder,
         Padding = UDim.new(0, 2)
     })
     
-    -- Home Button (Mercury Style)
-    local homeButton = self.Utilities.Create("TextButton", {
-        Name = "HomeButton",
-        Parent = tabContainer,
-        AnchorPoint = Vector2.new(1, 0),
-        Position = UDim2.new(1, -2, 0, 2),
-        Size = UDim2.new(0, 25, 0, 25),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Primary"),
-        BorderSizePixel = 0,
-        Text = "H",
-        TextColor3 = Color3.new(1, 1, 1),
-        TextScaled = true,
-        Font = Enum.Font.GothamBold
+    -- Content Frame
+    local contentFrame = Ruvex:CreateInstance("Frame", {
+        Name = "ContentFrame",
+        Parent = mainFrame,
+        Size = UDim2.new(1, 0, 1, -65),
+        Position = UDim2.new(0, 0, 0, 65),
+        BackgroundTransparency = 1
     })
     
-    local homeCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(0, 4),
-        Parent = homeButton
-    })
+    -- Make window draggable
+    Ruvex:MakeDraggable(mainFrame, titleBar)
     
-    -- Tab Content Area
-    local tabContentFrame = self.Utilities.Create("Frame", {
-        Name = "TabContent",
-        Parent = contentFrame,
-        Position = UDim2.new(0, 0, 0, 35),
-        Size = UDim2.new(1, 0, 1, -35),
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0
-    })
+    -- Window Controls Functionality
+    local minimized = false
+    local originalSize = windowSize
     
-    -- Add theme objects
-    self.Utilities.AddToThemeObjects(mainFrame, "BackgroundColor3", "Main")
-    self.Utilities.AddToThemeObjects(titleBar, "BackgroundColor3", "Secondary")
-    self.Utilities.AddToThemeObjects(titleLabel, "TextColor3", "TextPrimary")
-    self.Utilities.AddToThemeObjects(contentFrame, "BackgroundColor3", "Background")
-    self.Utilities.AddToThemeObjects(tabContainer, "BackgroundColor3", "Secondary")
-    self.Utilities.AddToThemeObjects(homeButton, "BackgroundColor3", "Primary")
-    
-    -- Make draggable
-    self.Utilities.MakeDraggable(mainFrame, titleBar)
-    
-    -- Window object
-    local windowObject = {
-        ScreenGui = screenGui,
-        MainFrame = mainFrame,
-        ShadowFrame = shadowFrame,
-        TitleBar = titleBar,
-        ContentFrame = contentFrame,
-        TabContainer = tabContainer,
-        TabScrollFrame = tabScrollFrame,
-        TabContentFrame = tabContentFrame,
-        Tabs = {},
-        CurrentTab = nil,
-        Visible = true,
-        Title = title
-    }
-    
-    -- Button Events
-    closeButton.MouseButton1Click:Connect(function()
-        screenGui:Destroy()
-        -- Remove from windows table
-        for i, window in pairs(self.Windows) do
-            if window == windowObject then
-                table.remove(self.Windows, i)
-                break
-            end
+    minimizeBtn.MouseButton1Click:Connect(function()
+        minimized = not minimized
+        if minimized then
+            Ruvex:Tween(mainFrame, 0.3, {Size = UDim2.new(0, originalSize.X.Offset, 0, 35)})
+            minimizeIcon.Text = "□"
+        else
+            Ruvex:Tween(mainFrame, 0.3, {Size = originalSize})
+            minimizeIcon.Text = "_"
         end
     end)
     
-    minimizeButton.MouseButton1Click:Connect(function()
-        windowObject.Visible = not windowObject.Visible
-        mainFrame.Visible = windowObject.Visible
-        shadowFrame.Visible = windowObject.Visible
-    end)
-    
-    homeButton.MouseButton1Click:Connect(function()
-        -- Switch to first tab if available
-        if #windowObject.Tabs > 0 then
-            windowObject:SwitchToTab(windowObject.Tabs[1])
-        end
-    end)
-    
-    -- Add methods to window object
-    function windowObject:CreateTab(name, options)
-        return self:CreateTab(name, options, windowObject)
-    end
-    
-    function windowObject:SwitchToTab(tab)
-        if self.CurrentTab then
-            self.CurrentTab.ContentFrame.Visible = false
-            self.CurrentTab.Button.BackgroundColor3 = Ruvex.Utilities.GetThemeColor("Tertiary")
-        end
-        
-        self.CurrentTab = tab
-        tab.ContentFrame.Visible = true
-        tab.Button.BackgroundColor3 = Ruvex.Utilities.GetThemeColor("Primary")
-        
-        -- Animate tab switch
-        Ruvex.Utilities.Tween(tab.ContentFrame, {BackgroundTransparency = 0}, 0.15)
-    end
-    
-    -- Store window
-    table.insert(self.Windows, windowObject)
-    self.CurrentWindow = windowObject
-    
-    return windowObject
-end
-
--- Tab Creation Function
-function Ruvex:CreateTab(name, options, window)
-    options = options or {}
-    window = window or self.CurrentWindow
-    if not window then return end
-    
-    local tabId = #window.Tabs + 1
-    
-    -- Create Tab Button
-    local tabButton = self.Utilities.Create("TextButton", {
-        Name = "Tab_" .. tabId,
-        Parent = window.TabScrollFrame,
-        Size = UDim2.new(0, 120, 1, -4),
-        Position = UDim2.new(0, 0, 0, 2),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Tertiary"),
-        BorderSizePixel = 0,
-        Text = name,
-        TextColor3 = self.Utilities.GetThemeColor("TextPrimary"),
-        TextScaled = true,
-        Font = Enum.Font.Gotham,
-        LayoutOrder = tabId
-    })
-    
-    local tabCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(0, 6),
-        Parent = tabButton
-    })
-    
-    -- Tab Content Frame
-    local tabContent = self.Utilities.Create("ScrollingFrame", {
-        Name = "TabContent_" .. tabId,
-        Parent = window.TabContentFrame,
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Background"),
-        BorderSizePixel = 0,
-        ScrollBarThickness = 6,
-        ScrollBarImageColor3 = self.Utilities.GetThemeColor("Primary"),
-        CanvasSize = UDim2.new(0, 0, 0, 0),
-        Visible = false
-    })
-    
-    local tabContentLayout = self.Utilities.Create("UIListLayout", {
-        Parent = tabContent,
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 5)
-    })
-    
-    local tabContentPadding = self.Utilities.Create("UIPadding", {
-        Parent = tabContent,
-        PaddingTop = UDim.new(0, 10),
-        PaddingLeft = UDim.new(0, 10),
-        PaddingRight = UDim.new(0, 10),
-        PaddingBottom = UDim.new(0, 10)
-    })
-    
-    -- Update tab scroll canvas size when content changes
-    tabContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        tabContent.CanvasSize = UDim2.new(0, 0, 0, tabContentLayout.AbsoluteContentSize.Y + 20)
-    end)
-    
-    -- Update window tab scroll canvas
-    window.TabScrollFrame.CanvasSize = UDim2.new(0, tabId * 122, 0, 0)
-    
-    -- Tab object
-    local tabObject = {
-        Button = tabButton,
-        ContentFrame = tabContent,
-        Name = name,
-        Components = {},
-        Window = window
-    }
-    
-    -- Tab button events
-    tabButton.MouseButton1Click:Connect(function()
-        window:SwitchToTab(tabObject)
-    end)
-    
-    -- Hover effects
-    tabButton.MouseEnter:Connect(function()
-        if window.CurrentTab ~= tabObject then
-            self.Utilities.Tween(tabButton, {BackgroundColor3 = self.Utilities.GetThemeColor("Hover")}, 0.15)
-        end
-    end)
-    
-    tabButton.MouseLeave:Connect(function()
-        if window.CurrentTab ~= tabObject then
-            self.Utilities.Tween(tabButton, {BackgroundColor3 = self.Utilities.GetThemeColor("Tertiary")}, 0.15)
-        end
-    end)
-    
-    -- Add theme objects
-    self.Utilities.AddToThemeObjects(tabButton, "TextColor3", "TextPrimary")
-    self.Utilities.AddToThemeObjects(tabContent, "BackgroundColor3", "Background")
-    
-    -- Add methods to tab object
-    function tabObject:CreateSection(name)
-        return Ruvex:CreateSection(name, self)
-    end
-    
-    function tabObject:CreateButton(options)
-        return Ruvex:CreateButton(options, self)
-    end
-    
-    function tabObject:CreateToggle(options)
-        return Ruvex:CreateToggle(options, self)
-    end
-    
-    function tabObject:CreateSlider(options)
-        return Ruvex:CreateSlider(options, self)
-    end
-    
-    function tabObject:CreateDropdown(options)
-        return Ruvex:CreateDropdown(options, self)
-    end
-    
-    function tabObject:CreateTextBox(options)
-        return Ruvex:CreateTextBox(options, self)
-    end
-    
-    function tabObject:CreateLabel(options)
-        return Ruvex:CreateLabel(options, self)
-    end
-    
-    function tabObject:CreateColorPicker(options)
-        return Ruvex:CreateColorPicker(options, self)
-    end
-    
-    -- Store tab
-    table.insert(window.Tabs, tabObject)
-    
-    -- Switch to first tab automatically
-    if #window.Tabs == 1 then
-        window:SwitchToTab(tabObject)
-    end
-    
-    return tabObject
-end
--- Section Creation (Cerberus Style)
-function Ruvex:CreateSection(name, tab)
-    if not tab then return end
-    
-    local sectionFrame = self.Utilities.Create("Frame", {
-        Name = "Section_" .. name,
-        Parent = tab.ContentFrame,
-        Size = UDim2.new(1, 0, 0, 40),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Main"),
-        BorderSizePixel = 0,
-        LayoutOrder = #tab.Components + 1
-    })
-    
-    local sectionCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(0, 6),
-        Parent = sectionFrame
-    })
-    
-    local sectionLabel = self.Utilities.Create("TextLabel", {
-        Name = "SectionLabel",
-        Parent = sectionFrame,
-        Size = UDim2.new(1, -20, 1, 0),
-        Position = UDim2.new(0, 10, 0, 0),
-        BackgroundTransparency = 1,
-        Text = name,
-        TextColor3 = self.Utilities.GetThemeColor("TextPrimary"),
-        TextScaled = true,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.GothamBold
-    })
-    
-    -- Add theme objects
-    self.Utilities.AddToThemeObjects(sectionFrame, "BackgroundColor3", "Main")
-    self.Utilities.AddToThemeObjects(sectionLabel, "TextColor3", "TextPrimary")
-    
-    local sectionObject = {
-        Frame = sectionFrame,
-        Label = sectionLabel,
-        Name = name
-    }
-    
-    table.insert(tab.Components, sectionObject)
-    return sectionObject
-end
-
--- Button Creation (Cerberus Style)
-function Ruvex:CreateButton(options, tab)
-    options = options or {}
-    if not tab then return end
-    
-    local buttonFrame = self.Utilities.Create("Frame", {
-        Name = "ButtonFrame",
-        Parent = tab.ContentFrame,
-        Size = UDim2.new(1, 0, 0, 35),
-        BackgroundTransparency = 1,
-        LayoutOrder = #tab.Components + 1
-    })
-    
-    local button = self.Utilities.Create("TextButton", {
-        Name = "Button",
-        Parent = buttonFrame,
-        Size = UDim2.new(1, -10, 1, 0),
-        Position = UDim2.new(0, 5, 0, 0),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Primary"),
-        BorderSizePixel = 0,
-        Text = options.Text or "Button",
-        TextColor3 = Color3.new(1, 1, 1),
-        TextScaled = true,
-        Font = Enum.Font.GothamBold
-    })
-    
-    local buttonCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(0, 6),
-        Parent = button
-    })
-    
-    -- Button events
-    local function onButtonClick()
-        -- Ripple effect
-        local ripple = self.Utilities.Create("Frame", {
-            Parent = button,
-            AnchorPoint = Vector2.new(0.5, 0.5),
-            Position = UDim2.new(0.5, 0, 0.5, 0),
+    closeBtn.MouseButton1Click:Connect(function()
+        Ruvex:Tween(mainFrame, 0.3, {
             Size = UDim2.new(0, 0, 0, 0),
-            BackgroundColor3 = Color3.new(1, 1, 1),
-            BackgroundTransparency = 0.5,
-            BorderSizePixel = 0,
-            ZIndex = button.ZIndex + 1
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        }, Enum.EasingStyle.Back, Enum.EasingDirection.In, function()
+            screenGui:Destroy()
+        end)
+    end)
+    
+    -- Toggle Functionality
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.KeyCode == Ruvex.ToggleKey then
+            Ruvex.Toggled = not Ruvex.Toggled
+            screenGui.Enabled = Ruvex.Toggled
+        end
+    end)
+    
+    -- Tab Creation Function
+    function window:CreateTab(config)
+        config = config or {}
+        local tabName = config.Name or "New Tab"
+        local tabIcon = config.Icon or ""
+        
+        local tab = {}
+        tab.Sections = {}
+        tab.LeftSections = {}
+        tab.RightSections = {}
+        
+        -- Tab Button
+        local tabButton = Ruvex:CreateInstance("TextButton", {
+            Name = "TabButton",
+            Parent = tabScrolling,
+            Size = UDim2.new(0, 120, 1, 0),
+            Theme = {
+                BackgroundColor3 = "Tertiary"
+            },
+            LayoutOrder = #window.Tabs + 1
         })
         
-        self.Utilities.Create("UICorner", {
-            CornerRadius = UDim.new(1, 0),
-            Parent = ripple
+        local tabButtonCorner = Ruvex:CreateCorner(0)
+        tabButtonCorner.Parent = tabButton
+        
+        local tabText = Ruvex:CreateInstance("TextLabel", {
+            Name = "TabText",
+            Parent = tabButton,
+            Size = UDim2.new(1, -20, 1, 0),
+            Position = UDim2.new(0, tabIcon ~= "" and 25 or 10, 0, 0),
+            Text = tabName,
+            Font = Enum.Font.Gotham,
+            TextSize = 12,
+            BackgroundTransparency = 1,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Theme = {
+                TextColor3 = "TextSecondary"
+            }
         })
         
-        self.Utilities.Tween(ripple, {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1}, 0.3, nil, nil, function()
-            ripple:Destroy()
-        end)
-        
-        if options.Callback then
-            options.Callback()
-        end
-    end
-    
-    button.MouseButton1Click:Connect(onButtonClick)
-    
-    -- Hover effects
-    button.MouseEnter:Connect(function()
-        self.Utilities.Tween(button, {BackgroundColor3 = self.Utilities.GetThemeColor("PrimaryLight")}, 0.15)
-    end)
-    
-    button.MouseLeave:Connect(function()
-        self.Utilities.Tween(button, {BackgroundColor3 = self.Utilities.GetThemeColor("Primary")}, 0.15)
-    end)
-    
-    -- Add theme objects
-    self.Utilities.AddToThemeObjects(button, "BackgroundColor3", "Primary")
-    
-    local buttonObject = {
-        Frame = buttonFrame,
-        Button = button,
-        Text = options.Text or "Button",
-        Callback = options.Callback
-    }
-    
-    function buttonObject:SetText(text)
-        self.Text = text
-        button.Text = text
-    end
-    
-    function buttonObject:SetCallback(callback)
-        self.Callback = callback
-    end
-    
-    table.insert(tab.Components, buttonObject)
-    return buttonObject
-end
--- Toggle Creation (Cerberus Style)
-function Ruvex:CreateToggle(options, tab)
-    options = options or {}
-    if not tab then return end
-    
-    local toggleFrame = self.Utilities.Create("Frame", {
-        Name = "ToggleFrame",
-        Parent = tab.ContentFrame,
-        Size = UDim2.new(1, 0, 0, 35),
-        BackgroundTransparency = 1,
-        LayoutOrder = #tab.Components + 1
-    })
-    
-    local toggleLabel = self.Utilities.Create("TextLabel", {
-        Name = "ToggleLabel",
-        Parent = toggleFrame,
-        Size = UDim2.new(1, -60, 1, 0),
-        Position = UDim2.new(0, 10, 0, 0),
-        BackgroundTransparency = 1,
-        Text = options.Text or "Toggle",
-        TextColor3 = self.Utilities.GetThemeColor("TextPrimary"),
-        TextScaled = true,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.Gotham
-    })
-    
-    local toggleButton = self.Utilities.Create("TextButton", {
-        Name = "ToggleButton",
-        Parent = toggleFrame,
-        AnchorPoint = Vector2.new(1, 0.5),
-        Position = UDim2.new(1, -10, 0.5, 0),
-        Size = UDim2.new(0, 40, 0, 20),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Tertiary"),
-        BorderSizePixel = 0,
-        Text = ""
-    })
-    
-    local toggleCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(1, 0),
-        Parent = toggleButton
-    })
-    
-    local toggleIndicator = self.Utilities.Create("Frame", {
-        Name = "ToggleIndicator",
-        Parent = toggleButton,
-        Position = UDim2.new(0, 2, 0.5, 0),
-        Size = UDim2.new(0, 16, 0, 16),
-        AnchorPoint = Vector2.new(0, 0.5),
-        BackgroundColor3 = Color3.new(1, 1, 1),
-        BorderSizePixel = 0
-    })
-    
-    local indicatorCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(1, 0),
-        Parent = toggleIndicator
-    })
-    
-    local toggled = options.Default or false
-    
-    local function updateToggle()
-        if toggled then
-            self.Utilities.Tween(toggleButton, {BackgroundColor3 = self.Utilities.GetThemeColor("Primary")}, 0.2)
-            self.Utilities.Tween(toggleIndicator, {Position = UDim2.new(1, -18, 0.5, 0)}, 0.2)
-        else
-            self.Utilities.Tween(toggleButton, {BackgroundColor3 = self.Utilities.GetThemeColor("Tertiary")}, 0.2)
-            self.Utilities.Tween(toggleIndicator, {Position = UDim2.new(0, 2, 0.5, 0)}, 0.2)
+        if tabIcon ~= "" then
+            local tabIconLabel = Ruvex:CreateInstance("ImageLabel", {
+                Name = "TabIcon",
+                Parent = tabButton,
+                Size = UDim2.new(0, 16, 0, 16),
+                Position = UDim2.new(0, 8, 0.5, -8),
+                Image = tabIcon,
+                BackgroundTransparency = 1,
+                Theme = {
+                    ImageColor3 = "TextSecondary"
+                }
+            })
         end
         
-        if options.Callback then
-            options.Callback(toggled)
-        end
+        -- Tab Content
+        local tabContent = Ruvex:CreateInstance("Frame", {
+            Name = "TabContent",
+            Parent = contentFrame,
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Visible = false
+        })
         
-        -- Save to flags
-        if options.Flag then
-            Ruvex.Flags[options.Flag] = toggled
-        end
-    end
-    
-    toggleButton.MouseButton1Click:Connect(function()
-        toggled = not toggled
-        updateToggle()
-    end)
-    
-    -- Initialize
-    updateToggle()
-    
-    -- Add theme objects
-    self.Utilities.AddToThemeObjects(toggleLabel, "TextColor3", "TextPrimary")
-    
-    local toggleObject = {
-        Frame = toggleFrame,
-        Label = toggleLabel,
-        Button = toggleButton,
-        Indicator = toggleIndicator,
-        Text = options.Text or "Toggle",
-        Value = toggled,
-        Callback = options.Callback,
-        Flag = options.Flag
-    }
-    
-    function toggleObject:SetValue(value)
-        toggled = value
-        self.Value = value
-        updateToggle()
-    end
-    
-    function toggleObject:GetValue()
-        return toggled
-    end
-    
-    table.insert(tab.Components, toggleObject)
-    return toggleObject
-end
-
--- Slider Creation (Cerberus Style)
-function Ruvex:CreateSlider(options, tab)
-    options = options or {}
-    if not tab then return end
-    
-    local min = options.Min or 0
-    local max = options.Max or 100
-    local default = options.Default or min
-    local increment = options.Increment or 1
-    
-    local sliderFrame = self.Utilities.Create("Frame", {
-        Name = "SliderFrame",
-        Parent = tab.ContentFrame,
-        Size = UDim2.new(1, 0, 0, 45),
-        BackgroundTransparency = 1,
-        LayoutOrder = #tab.Components + 1
-    })
-    
-    local sliderLabel = self.Utilities.Create("TextLabel", {
-        Name = "SliderLabel",
-        Parent = sliderFrame,
-        Size = UDim2.new(1, -80, 0, 20),
-        Position = UDim2.new(0, 10, 0, 0),
-        BackgroundTransparency = 1,
-        Text = options.Text or "Slider",
-        TextColor3 = self.Utilities.GetThemeColor("TextPrimary"),
-        TextScaled = true,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.Gotham
-    })
-    
-    local sliderValue = self.Utilities.Create("TextLabel", {
-        Name = "SliderValue",
-        Parent = sliderFrame,
-        AnchorPoint = Vector2.new(1, 0),
-        Position = UDim2.new(1, -10, 0, 0),
-        Size = UDim2.new(0, 60, 0, 20),
-        BackgroundTransparency = 1,
-        Text = tostring(default),
-        TextColor3 = self.Utilities.GetThemeColor("TextSecondary"),
-        TextScaled = true,
-        TextXAlignment = Enum.TextXAlignment.Right,
-        Font = Enum.Font.Gotham
-    })
-    
-    local sliderBack = self.Utilities.Create("Frame", {
-        Name = "SliderBack",
-        Parent = sliderFrame,
-        Position = UDim2.new(0, 10, 0, 25),
-        Size = UDim2.new(1, -20, 0, 6),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Tertiary"),
-        BorderSizePixel = 0
-    })
-    
-    local sliderBackCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(1, 0),
-        Parent = sliderBack
-    })
-    
-    local sliderFill = self.Utilities.Create("Frame", {
-        Name = "SliderFill",
-        Parent = sliderBack,
-        Size = UDim2.new(0, 0, 1, 0),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Primary"),
-        BorderSizePixel = 0
-    })
-    
-    local sliderFillCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(1, 0),
-        Parent = sliderFill
-    })
-    
-    local sliderButton = self.Utilities.Create("TextButton", {
-        Name = "SliderButton",
-        Parent = sliderBack,
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.new(0, 0, 0.5, 0),
-        Size = UDim2.new(0, 14, 0, 14),
-        BackgroundColor3 = Color3.new(1, 1, 1),
-        BorderSizePixel = 0,
-        Text = ""
-    })
-    
-    local sliderButtonCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(1, 0),
-        Parent = sliderButton
-    })
-    
-    local currentValue = default
-    local dragging = false
-    
-    local function updateSlider(value)
-        value = math.clamp(value, min, max)
-        value = math.round(value / increment) * increment
-        currentValue = value
+        -- Left and Right Containers
+        local leftContainer = Ruvex:CreateInstance("ScrollingFrame", {
+            Name = "LeftContainer",
+            Parent = tabContent,
+            Size = UDim2.new(0.5, -5, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
+            BackgroundTransparency = 1,
+            ScrollBarThickness = 4,
+            CanvasSize = UDim2.new(0, 0, 0, 0),
+            AutomaticCanvasSize = Enum.AutomaticSize.Y
+        })
         
-        local percentage = (value - min) / (max - min)
-        sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
-        sliderButton.Position = UDim2.new(percentage, 0, 0.5, 0)
-        sliderValue.Text = tostring(value)
+        local leftLayout = Ruvex:CreateInstance("UIListLayout", {
+            Parent = leftContainer,
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 10)
+        })
         
-        if options.Callback then
-            options.Callback(value)
-        end
+        local leftPadding = Ruvex:CreateInstance("UIPadding", {
+            Parent = leftContainer,
+            PaddingLeft = UDim.new(0, 10),
+            PaddingRight = UDim.new(0, 5),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10)
+        })
         
-        if options.Flag then
-            Ruvex.Flags[options.Flag] = value
-        end
-    end
-    
-    sliderButton.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local percentage = math.clamp((input.Position.X - sliderBack.AbsolutePosition.X) / sliderBack.AbsoluteSize.X, 0, 1)
-            local value = min + percentage * (max - min)
-            updateSlider(value)
-        end
-    end)
-    
-    -- Initialize
-    updateSlider(default)
-    
-    -- Add theme objects
-    self.Utilities.AddToThemeObjects(sliderLabel, "TextColor3", "TextPrimary")
-    self.Utilities.AddToThemeObjects(sliderValue, "TextColor3", "TextSecondary")
-    self.Utilities.AddToThemeObjects(sliderBack, "BackgroundColor3", "Tertiary")
-    self.Utilities.AddToThemeObjects(sliderFill, "BackgroundColor3", "Primary")
-    
-    local sliderObject = {
-        Frame = sliderFrame,
-        Label = sliderLabel,
-        ValueLabel = sliderValue,
-        Back = sliderBack,
-        Fill = sliderFill,
-        Button = sliderButton,
-        Text = options.Text or "Slider",
-        Value = currentValue,
-        Min = min,
-        Max = max,
-        Increment = increment,
-        Callback = options.Callback,
-        Flag = options.Flag
-    }
-    
-    function sliderObject:SetValue(value)
-        updateSlider(value)
-    end
-    
-    function sliderObject:GetValue()
-        return currentValue
-    end
-    
-    table.insert(tab.Components, sliderObject)
-    return sliderObject
-end
-
--- TextBox Creation (Luminosity Style)
-function Ruvex:CreateTextBox(options, tab)
-    options = options or {}
-    if not tab then return end
-    
-    local textBoxFrame = self.Utilities.Create("Frame", {
-        Name = "TextBoxFrame",
-        Parent = tab.ContentFrame,
-        Size = UDim2.new(1, 0, 0, 35),
-        BackgroundTransparency = 1,
-        LayoutOrder = #tab.Components + 1
-    })
-    
-    local textBoxLabel = self.Utilities.Create("TextLabel", {
-        Name = "TextBoxLabel",
-        Parent = textBoxFrame,
-        Size = UDim2.new(0.4, 0, 1, 0),
-        Position = UDim2.new(0, 10, 0, 0),
-        BackgroundTransparency = 1,
-        Text = options.Text or "TextBox",
-        TextColor3 = self.Utilities.GetThemeColor("TextPrimary"),
-        TextScaled = true,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.Gotham
-    })
-    
-    local textBox = self.Utilities.Create("TextBox", {
-        Name = "TextBox",
-        Parent = textBoxFrame,
-        AnchorPoint = Vector2.new(1, 0),
-        Position = UDim2.new(1, -10, 0, 5),
-        Size = UDim2.new(0.5, 0, 0, 25),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Main"),
-        BorderSizePixel = 0,
-        Text = options.Default or "",
-        PlaceholderText = options.Placeholder or "Enter text...",
-        TextColor3 = self.Utilities.GetThemeColor("TextPrimary"),
-        PlaceholderColor3 = self.Utilities.GetThemeColor("TextTertiary"),
-        TextScaled = true,
-        Font = Enum.Font.Gotham,
-        ClearTextOnFocus = false
-    })
-    
-    local textBoxCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(0, 4),
-        Parent = textBox
-    })
-    
-    local textBoxPadding = self.Utilities.Create("UIPadding", {
-        Parent = textBox,
-        PaddingLeft = UDim.new(0, 8),
-        PaddingRight = UDim.new(0, 8)
-    })
-    
-    -- Events
-    textBox.FocusLost:Connect(function(enterPressed)
-        if options.Callback then
-            options.Callback(textBox.Text)
-        end
+        local rightContainer = Ruvex:CreateInstance("ScrollingFrame", {
+            Name = "RightContainer",
+            Parent = tabContent,
+            Size = UDim2.new(0.5, -5, 1, 0),
+            Position = UDim2.new(0.5, 5, 0, 0),
+            BackgroundTransparency = 1,
+            ScrollBarThickness = 4,
+            CanvasSize = UDim2.new(0, 0, 0, 0),
+            AutomaticCanvasSize = Enum.AutomaticSize.Y
+        })
         
-        if options.Flag then
-            Ruvex.Flags[options.Flag] = textBox.Text
-        end
-    end)
-    
-    textBox.Focused:Connect(function()
-        self.Utilities.Tween(textBox, {BackgroundColor3 = self.Utilities.GetThemeColor("Secondary")}, 0.15)
-    end)
-    
-    textBox.FocusLost:Connect(function()
-        self.Utilities.Tween(textBox, {BackgroundColor3 = self.Utilities.GetThemeColor("Main")}, 0.15)
-    end)
-    
-    -- Add theme objects
-    self.Utilities.AddToThemeObjects(textBoxLabel, "TextColor3", "TextPrimary")
-    self.Utilities.AddToThemeObjects(textBox, "BackgroundColor3", "Main")
-    self.Utilities.AddToThemeObjects(textBox, "TextColor3", "TextPrimary")
-    self.Utilities.AddToThemeObjects(textBox, "PlaceholderColor3", "TextTertiary")
-    
-    local textBoxObject = {
-        Frame = textBoxFrame,
-        Label = textBoxLabel,
-        TextBox = textBox,
-        Text = options.Text or "TextBox",
-        Value = options.Default or "",
-        Callback = options.Callback,
-        Flag = options.Flag
-    }
-    
-    function textBoxObject:SetValue(value)
-        textBox.Text = value
-        self.Value = value
+        local rightLayout = Ruvex:CreateInstance("UIListLayout", {
+            Parent = rightContainer,
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 10)
+        })
         
-        if options.Callback then
-            options.Callback(value)
-        end
+        local rightPadding = Ruvex:CreateInstance("UIPadding", {
+            Parent = rightContainer,
+            PaddingLeft = UDim.new(0, 5),
+            PaddingRight = UDim.new(0, 10),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10)
+        })
         
-        if options.Flag then
-            Ruvex.Flags[options.Flag] = value
-        end
-    end
-    
-    function textBoxObject:GetValue()
-        return textBox.Text
-    end
-    
-    table.insert(tab.Components, textBoxObject)
-    return textBoxObject
-end
-
--- Label Creation (Simple)
-function Ruvex:CreateLabel(options, tab)
-    options = options or {}
-    if not tab then return end
-    
-    local labelFrame = self.Utilities.Create("Frame", {
-        Name = "LabelFrame",
-        Parent = tab.ContentFrame,
-        Size = UDim2.new(1, 0, 0, 25),
-        BackgroundTransparency = 1,
-        LayoutOrder = #tab.Components + 1
-    })
-    
-    local label = self.Utilities.Create("TextLabel", {
-        Name = "Label",
-        Parent = labelFrame,
-        Size = UDim2.new(1, -20, 1, 0),
-        Position = UDim2.new(0, 10, 0, 0),
-        BackgroundTransparency = 1,
-        Text = options.Text or "Label",
-        TextColor3 = self.Utilities.GetThemeColor("TextPrimary"),
-        TextScaled = true,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.Gotham
-    })
-    
-    -- Add theme objects
-    self.Utilities.AddToThemeObjects(label, "TextColor3", "TextPrimary")
-    
-    local labelObject = {
-        Frame = labelFrame,
-        Label = label,
-        Text = options.Text or "Label"
-    }
-    
-    function labelObject:SetText(text)
-        label.Text = text
-        self.Text = text
-    end
-    
-    table.insert(tab.Components, labelObject)
-    return labelObject
-end
-
--- Configuration Management
-function Ruvex:SaveConfig(name)
-    if not writefile then
-        warn("File functions not available")
-        return
-    end
-    
-    if not isfolder(self.Settings.ConfigFolder) then
-        makefolder(self.Settings.ConfigFolder)
-    end
-    
-    local config = {}
-    for flag, value in pairs(self.Flags) do
-        config[flag] = value
-    end
-    
-    local success, result = pcall(function()
-        return HTTPService:JSONEncode(config)
-    end)
-    
-    if success then
-        writefile(self.Settings.ConfigFolder .. "/" .. name .. ".json", result)
-    else
-        warn("Failed to save config: " .. tostring(result))
-    end
-end
-
-function Ruvex:LoadConfig(name)
-    if not readfile or not isfile then
-        warn("File functions not available")
-        return
-    end
-    
-    local configPath = self.Settings.ConfigFolder .. "/" .. name .. ".json"
-    if not isfile(configPath) then
-        warn("Config file not found: " .. name)
-        return
-    end
-    
-    local success, result = pcall(function()
-        return readfile(configPath)
-    end)
-    
-    if success then
-        local success2, config = pcall(function()
-            return HTTPService:JSONDecode(result)
-        end)
-        
-        if success2 then
-            for flag, value in pairs(config) do
-                self.Flags[flag] = value
+        -- Tab Selection Logic
+        tabButton.MouseButton1Click:Connect(function()
+            -- Hide all tabs
+            for _, otherTab in pairs(window.Tabs) do
+                otherTab.Content.Visible = false
+                Ruvex:Tween(otherTab.Button, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Tertiary})
+                Ruvex:Tween(otherTab.TextLabel, 0.2, {TextColor3 = Ruvex.CurrentTheme.TextSecondary})
+                if otherTab.IconLabel then
+                    Ruvex:Tween(otherTab.IconLabel, 0.2, {ImageColor3 = Ruvex.CurrentTheme.TextSecondary})
+                end
             end
-        else
-            warn("Failed to decode config: " .. tostring(config))
-        end
-    else
-        warn("Failed to read config: " .. tostring(result))
-    end
-end
-
--- Notification System (PPHud Style)
-function Ruvex:CreateNotification(options)
-    options = options or {}
-    
-    local notificationGui = self.Utilities.Create("ScreenGui", {
-        Name = "RuvexNotification",
-        Parent = CoreGui,
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        DisplayOrder = 1000
-    })
-    
-    local notification = self.Utilities.Create("Frame", {
-        Name = "Notification",
-        Parent = notificationGui,
-        AnchorPoint = Vector2.new(1, 0),
-        Position = UDim2.new(1, -20, 0, 20),
-        Size = UDim2.new(0, 300, 0, 60),
-        BackgroundColor3 = self.Utilities.GetThemeColor("Main"),
-        BorderSizePixel = 0
-    })
-    
-    local notificationCorner = self.Utilities.Create("UICorner", {
-        CornerRadius = UDim.new(0, 8),
-        Parent = notification
-    })
-    
-    local notificationTitle = self.Utilities.Create("TextLabel", {
-        Name = "Title",
-        Parent = notification,
-        Position = UDim2.new(0, 15, 0, 5),
-        Size = UDim2.new(1, -30, 0, 20),
-        BackgroundTransparency = 1,
-        Text = options.Title or "Notification",
-        TextColor3 = self.Utilities.GetThemeColor("TextPrimary"),
-        TextScaled = true,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.GothamBold
-    })
-    
-    local notificationText = self.Utilities.Create("TextLabel", {
-        Name = "Text",
-        Parent = notification,
-        Position = UDim2.new(0, 15, 0, 25),
-        Size = UDim2.new(1, -30, 0, 25),
-        BackgroundTransparency = 1,
-        Text = options.Text or "Description",
-        TextColor3 = self.Utilities.GetThemeColor("TextSecondary"),
-        TextScaled = true,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.Gotham,
-        TextWrapped = true
-    })
-    
-    -- Slide in animation
-    notification.Position = UDim2.new(1, 50, 0, 20)
-    self.Utilities.Tween(notification, {Position = UDim2.new(1, -20, 0, 20)}, 0.3, Enum.EasingStyle.Back)
-    
-    -- Auto close after duration
-    spawn(function()
-        local duration = options.Duration or 3
-        wait(duration)
-        
-        -- Slide out and destroy
-        self.Utilities.Tween(notification, {Position = UDim2.new(1, 50, 0, 20)}, 0.3, nil, nil, function()
-            notificationGui:Destroy()
+            
+            -- Show current tab
+            tabContent.Visible = true
+            window.CurrentTab = tab
+            Ruvex:Tween(tabButton, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Accent})
+            Ruvex:Tween(tabText, 0.2, {TextColor3 = Ruvex.CurrentTheme.Text})
+            if tabIcon ~= "" then
+                local iconLabel = tabButton:FindFirstChild("TabIcon")
+                if iconLabel then
+                    Ruvex:Tween(iconLabel, 0.2, {ImageColor3 = Ruvex.CurrentTheme.Text})
+                end
+            end
         end)
-    end)
+        
+        -- Tab Hover Effects
+        tabButton.MouseEnter:Connect(function()
+            if window.CurrentTab ~= tab then
+                Ruvex:Tween(tabButton, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Secondary})
+                Ruvex:Tween(tabText, 0.2, {TextColor3 = Ruvex.CurrentTheme.Text})
+                if tabIcon ~= "" then
+                    local iconLabel = tabButton:FindFirstChild("TabIcon")
+                    if iconLabel then
+                        Ruvex:Tween(iconLabel, 0.2, {ImageColor3 = Ruvex.CurrentTheme.Text})
+                    end
+                end
+            end
+        end)
+        
+        tabButton.MouseLeave:Connect(function()
+            if window.CurrentTab ~= tab then
+                Ruvex:Tween(tabButton, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Tertiary})
+                Ruvex:Tween(tabText, 0.2, {TextColor3 = Ruvex.CurrentTheme.TextSecondary})
+                if tabIcon ~= "" then
+                    local iconLabel = tabButton:FindFirstChild("TabIcon")
+                    if iconLabel then
+                        Ruvex:Tween(iconLabel, 0.2, {ImageColor3 = Ruvex.CurrentTheme.TextSecondary})
+                    end
+                end
+            end
+        end)
+        
+        -- Section Creation Function
+        function tab:CreateSection(config)
+            config = config or {}
+            local sectionName = config.Name or "New Section"
+            local sectionSide = config.Side or "Auto"
+            
+            -- Determine which side to place section
+            local container
+            if sectionSide == "Left" then
+                container = leftContainer
+            elseif sectionSide == "Right" then
+                container = rightContainer
+            else
+                -- Auto-balance
+                container = (#tab.LeftSections <= #tab.RightSections) and leftContainer or rightContainer
+            end
+            
+            local section = {}
+            section.Elements = {}
+            
+            -- Section Frame
+            local sectionFrame = Ruvex:CreateInstance("Frame", {
+                Name = "Section",
+                Parent = container,
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                Theme = {
+                    BackgroundColor3 = "Secondary"
+                }
+            }, {
+                Ruvex:CreateCorner(6),
+                Ruvex:CreateStroke(Ruvex.CurrentTheme.Border, 1)
+            })
+            
+            -- Section Header
+            local sectionHeader = Ruvex:CreateInstance("Frame", {
+                Name = "SectionHeader",
+                Parent = sectionFrame,
+                Size = UDim2.new(1, 0, 0, 35),
+                Theme = {
+                    BackgroundColor3 = "Tertiary"
+                }
+            }, {
+                Ruvex:CreateCorner(6)
+            })
+            
+            -- Hide bottom corners of header
+            local headerBottom = Ruvex:CreateInstance("Frame", {
+                Name = "HeaderBottom",
+                Parent = sectionHeader,
+                Size = UDim2.new(1, 0, 0, 6),
+                Position = UDim2.new(0, 0, 1, -6),
+                Theme = {
+                    BackgroundColor3 = "Tertiary"
+                }
+            })
+            
+            local sectionTitle = Ruvex:CreateInstance("TextLabel", {
+                Name = "SectionTitle",
+                Parent = sectionHeader,
+                Size = UDim2.new(1, -20, 1, 0),
+                Position = UDim2.new(0, 15, 0, 0),
+                Text = sectionName,
+                Font = Enum.Font.GothamSemibold,
+                TextSize = 14,
+                BackgroundTransparency = 1,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Theme = {
+                    TextColor3 = "Text"
+                }
+            })
+            
+            -- Section Content
+            local sectionContent = Ruvex:CreateInstance("Frame", {
+                Name = "SectionContent",
+                Parent = sectionFrame,
+                Size = UDim2.new(1, 0, 0, 0),
+                Position = UDim2.new(0, 0, 0, 35),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundTransparency = 1
+            })
+            
+            local contentLayout = Ruvex:CreateInstance("UIListLayout", {
+                Parent = sectionContent,
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Padding = UDim.new(0, 8)
+            })
+            
+            local contentPadding = Ruvex:CreateInstance("UIPadding", {
+                Parent = sectionContent,
+                PaddingLeft = UDim.new(0, 15),
+                PaddingRight = UDim.new(0, 15),
+                PaddingTop = UDim.new(0, 10),
+                PaddingBottom = UDim.new(0, 15)
+            })
+            
+            -- Track section
+            if container == leftContainer then
+                table.insert(tab.LeftSections, section)
+            else
+                table.insert(tab.RightSections, section)
+            end
+            table.insert(tab.Sections, section)
+            
+            -- UI Elements Creation Functions
+            function section:CreateToggle(config)
+                config = config or {}
+                local toggleName = config.Name or "Toggle"
+                local toggleDefault = config.Default or false
+                local toggleCallback = config.Callback or function() end
+                local toggleFlag = config.Flag
+                
+                local toggle = {}
+                toggle.Value = toggleDefault
+                
+                if toggleFlag then
+                    Ruvex.Flags[toggleFlag] = toggle.Value
+                end
+                
+                -- Toggle Frame
+                local toggleFrame = Ruvex:CreateInstance("Frame", {
+                    Name = "ToggleFrame",
+                    Parent = sectionContent,
+                    Size = UDim2.new(1, 0, 0, 35),
+                    BackgroundTransparency = 1
+                })
+                
+                -- Toggle Button
+                local toggleButton = Ruvex:CreateInstance("TextButton", {
+                    Name = "ToggleButton",
+                    Parent = toggleFrame,
+                    Size = UDim2.new(0, 20, 0, 20),
+                    Position = UDim2.new(0, 0, 0.5, -10),
+                    Theme = {
+                        BackgroundColor3 = toggleDefault and "Accent" or "Tertiary"
+                    }
+                }, {
+                    Ruvex:CreateCorner(4),
+                    Ruvex:CreateStroke(Ruvex.CurrentTheme.Border, 1)
+                })
+                
+                -- Toggle Checkmark
+                local checkmark = Ruvex:CreateInstance("TextLabel", {
+                    Name = "Checkmark",
+                    Parent = toggleButton,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    Text = "✓",
+                    Font = Enum.Font.GothamBold,
+                    TextSize = 12,
+                    BackgroundTransparency = 1,
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    TextTransparency = toggleDefault and 0 or 1
+                })
+                
+                -- Toggle Label
+                local toggleLabel = Ruvex:CreateInstance("TextLabel", {
+                    Name = "ToggleLabel",
+                    Parent = toggleFrame,
+                    Size = UDim2.new(1, -30, 1, 0),
+                    Position = UDim2.new(0, 30, 0, 0),
+                    Text = toggleName,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Theme = {
+                        TextColor3 = "Text"
+                    }
+                })
+                
+                -- Toggle Functionality
+                local function updateToggle()
+                    if toggle.Value then
+                        Ruvex:Tween(toggleButton, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Accent})
+                        Ruvex:Tween(checkmark, 0.2, {TextTransparency = 0})
+                    else
+                        Ruvex:Tween(toggleButton, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Tertiary})
+                        Ruvex:Tween(checkmark, 0.2, {TextTransparency = 1})
+                    end
+                    
+                    if toggleFlag then
+                        Ruvex.Flags[toggleFlag] = toggle.Value
+                    end
+                    
+                    toggleCallback(toggle.Value)
+                end
+                
+                toggleButton.MouseButton1Click:Connect(function()
+                    toggle.Value = not toggle.Value
+                    updateToggle()
+                end)
+                
+                -- Hover Effects
+                toggleButton.MouseEnter:Connect(function()
+                    if not toggle.Value then
+                        Ruvex:Tween(toggleButton, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Secondary})
+                    end
+                end)
+                
+                toggleButton.MouseLeave:Connect(function()
+                    if not toggle.Value then
+                        Ruvex:Tween(toggleButton, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Tertiary})
+                    end
+                end)
+                
+                function toggle:Set(value)
+                    toggle.Value = value
+                    updateToggle()
+                end
+                
+                return toggle
+            end
+            
+            function section:CreateButton(config)
+                config = config or {}
+                local buttonName = config.Name or "Button"
+                local buttonCallback = config.Callback or function() end
+                
+                local button = {}
+                
+                -- Button Frame
+                local buttonFrame = Ruvex:CreateInstance("TextButton", {
+                    Name = "ButtonFrame",
+                    Parent = sectionContent,
+                    Size = UDim2.new(1, 0, 0, 35),
+                    Text = buttonName,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    Theme = {
+                        BackgroundColor3 = "Tertiary",
+                        TextColor3 = "Text"
+                    }
+                }, {
+                    Ruvex:CreateCorner(6),
+                    Ruvex:CreateStroke(Ruvex.CurrentTheme.Border, 1)
+                })
+                
+                -- Button Effects
+                buttonFrame.MouseEnter:Connect(function()
+                    Ruvex:Tween(buttonFrame, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Accent})
+                end)
+                
+                buttonFrame.MouseLeave:Connect(function()
+                    Ruvex:Tween(buttonFrame, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Tertiary})
+                end)
+                
+                buttonFrame.MouseButton1Down:Connect(function()
+                    Ruvex:Tween(buttonFrame, 0.1, {BackgroundColor3 = Ruvex.CurrentTheme.AccentDark})
+                end)
+                
+                buttonFrame.MouseButton1Up:Connect(function()
+                    Ruvex:Tween(buttonFrame, 0.1, {BackgroundColor3 = Ruvex.CurrentTheme.Accent})
+                end)
+                
+                buttonFrame.MouseButton1Click:Connect(function()
+                    buttonCallback()
+                end)
+                
+                return button
+            end
+            
+            function section:CreateSlider(config)
+                config = config or {}
+                local sliderName = config.Name or "Slider"
+                local sliderMin = config.Min or 0
+                local sliderMax = config.Max or 100
+                local sliderDefault = config.Default or sliderMin
+                local sliderIncrement = config.Increment or 1
+                local sliderCallback = config.Callback or function() end
+                local sliderFlag = config.Flag
+                
+                local slider = {}
+                slider.Value = sliderDefault
+                slider.Dragging = false
+                
+                if sliderFlag then
+                    Ruvex.Flags[sliderFlag] = slider.Value
+                end
+                
+                -- Slider Frame
+                local sliderFrame = Ruvex:CreateInstance("Frame", {
+                    Name = "SliderFrame",
+                    Parent = sectionContent,
+                    Size = UDim2.new(1, 0, 0, 50),
+                    BackgroundTransparency = 1
+                })
+                
+                -- Slider Label
+                local sliderLabel = Ruvex:CreateInstance("TextLabel", {
+                    Name = "SliderLabel",
+                    Parent = sliderFrame,
+                    Size = UDim2.new(1, -50, 0, 20),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    Text = sliderName,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Theme = {
+                        TextColor3 = "Text"
+                    }
+                })
+                
+                -- Slider Value Label
+                local valueLabel = Ruvex:CreateInstance("TextLabel", {
+                    Name = "ValueLabel",
+                    Parent = sliderFrame,
+                    Size = UDim2.new(0, 50, 0, 20),
+                    Position = UDim2.new(1, -50, 0, 0),
+                    Text = tostring(slider.Value),
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                    Theme = {
+                        TextColor3 = "TextSecondary"
+                    }
+                })
+                
+                -- Slider Track
+                local sliderTrack = Ruvex:CreateInstance("Frame", {
+                    Name = "SliderTrack",
+                    Parent = sliderFrame,
+                    Size = UDim2.new(1, 0, 0, 6),
+                    Position = UDim2.new(0, 0, 1, -20),
+                    Theme = {
+                        BackgroundColor3 = "Tertiary"
+                    }
+                }, {
+                    Ruvex:CreateCorner(3)
+                })
+                
+                -- Slider Fill
+                local sliderFill = Ruvex:CreateInstance("Frame", {
+                    Name = "SliderFill",
+                    Parent = sliderTrack,
+                    Size = UDim2.new((slider.Value - sliderMin) / (sliderMax - sliderMin), 0, 1, 0),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    Theme = {
+                        BackgroundColor3 = "Accent"
+                    }
+                }, {
+                    Ruvex:CreateCorner(3)
+                })
+                
+                -- Slider Handle
+                local sliderHandle = Ruvex:CreateInstance("Frame", {
+                    Name = "SliderHandle",
+                    Parent = sliderTrack,
+                    Size = UDim2.new(0, 12, 0, 12),
+                    Position = UDim2.new((slider.Value - sliderMin) / (sliderMax - sliderMin), -6, 0.5, -6),
+                    Theme = {
+                        BackgroundColor3 = "Text"
+                    }
+                }, {
+                    Ruvex:CreateCorner(6)
+                })
+                
+                -- Slider Input
+                local sliderInput = Ruvex:CreateInstance("TextButton", {
+                    Name = "SliderInput",
+                    Parent = sliderTrack,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    BackgroundTransparency = 1,
+                    Text = ""
+                })
+                
+                -- Slider Functionality
+                local function updateSlider(value)
+                    value = math.clamp(value, sliderMin, sliderMax)
+                    value = math.round(value / sliderIncrement) * sliderIncrement
+                    slider.Value = value
+                    
+                    local percentage = (value - sliderMin) / (sliderMax - sliderMin)
+                    
+                    Ruvex:Tween(sliderFill, 0.1, {Size = UDim2.new(percentage, 0, 1, 0)})
+                    Ruvex:Tween(sliderHandle, 0.1, {Position = UDim2.new(percentage, -6, 0.5, -6)})
+                    
+                    valueLabel.Text = tostring(value)
+                    
+                    if sliderFlag then
+                        Ruvex.Flags[sliderFlag] = value
+                    end
+                    
+                    sliderCallback(value)
+                end
+                
+                sliderInput.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        slider.Dragging = true
+                        
+                        local function updateFromMouse()
+                            local mouse = Mouse
+                            local percentage = math.clamp((mouse.X - sliderTrack.AbsolutePosition.X) / sliderTrack.AbsoluteSize.X, 0, 1)
+                            local value = sliderMin + (sliderMax - sliderMin) * percentage
+                            updateSlider(value)
+                        end
+                        
+                        updateFromMouse()
+                        
+                        local connection
+                        connection = Mouse.Move:Connect(function()
+                            if slider.Dragging then
+                                updateFromMouse()
+                            else
+                                connection:Disconnect()
+                            end
+                        end)
+                    end
+                end)
+                
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        slider.Dragging = false
+                    end
+                end)
+                
+                function slider:Set(value)
+                    updateSlider(value)
+                end
+                
+                updateSlider(sliderDefault)
+                
+                return slider
+            end
+            
+            function section:CreateDropdown(config)
+                config = config or {}
+                local dropdownName = config.Name or "Dropdown"
+                local dropdownOptions = config.Options or {"Option 1", "Option 2"}
+                local dropdownDefault = config.Default or dropdownOptions[1]
+                local dropdownCallback = config.Callback or function() end
+                local dropdownFlag = config.Flag
+                
+                local dropdown = {}
+                dropdown.Value = dropdownDefault
+                dropdown.Options = dropdownOptions
+                dropdown.Open = false
+                
+                if dropdownFlag then
+                    Ruvex.Flags[dropdownFlag] = dropdown.Value
+                end
+                
+                -- Dropdown Frame
+                local dropdownFrame = Ruvex:CreateInstance("Frame", {
+                    Name = "DropdownFrame",
+                    Parent = sectionContent,
+                    Size = UDim2.new(1, 0, 0, 50),
+                    BackgroundTransparency = 1
+                })
+                
+                -- Dropdown Label
+                local dropdownLabel = Ruvex:CreateInstance("TextLabel", {
+                    Name = "DropdownLabel",
+                    Parent = dropdownFrame,
+                    Size = UDim2.new(1, 0, 0, 20),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    Text = dropdownName,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Theme = {
+                        TextColor3 = "Text"
+                    }
+                })
+                
+                -- Dropdown Button
+                local dropdownButton = Ruvex:CreateInstance("TextButton", {
+                    Name = "DropdownButton",
+                    Parent = dropdownFrame,
+                    Size = UDim2.new(1, 0, 0, 25),
+                    Position = UDim2.new(0, 0, 1, -25),
+                    Theme = {
+                        BackgroundColor3 = "Tertiary"
+                    }
+                }, {
+                    Ruvex:CreateCorner(4),
+                    Ruvex:CreateStroke(Ruvex.CurrentTheme.Border, 1)
+                })
+                
+                -- Dropdown Text
+                local dropdownText = Ruvex:CreateInstance("TextLabel", {
+                    Name = "DropdownText",
+                    Parent = dropdownButton,
+                    Size = UDim2.new(1, -30, 1, 0),
+                    Position = UDim2.new(0, 10, 0, 0),
+                    Text = dropdown.Value,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 12,
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Theme = {
+                        TextColor3 = "Text"
+                    }
+                })
+                
+                -- Dropdown Arrow
+                local dropdownArrow = Ruvex:CreateInstance("TextLabel", {
+                    Name = "DropdownArrow",
+                    Parent = dropdownButton,
+                    Size = UDim2.new(0, 20, 1, 0),
+                    Position = UDim2.new(1, -20, 0, 0),
+                    Text = "▼",
+                    Font = Enum.Font.Gotham,
+                    TextSize = 10,
+                    BackgroundTransparency = 1,
+                    Theme = {
+                        TextColor3 = "TextSecondary"
+                    }
+                })
+                
+                -- Dropdown List
+                local dropdownList = Ruvex:CreateInstance("Frame", {
+                    Name = "DropdownList",
+                    Parent = dropdownFrame,
+                    Size = UDim2.new(1, 0, 0, #dropdownOptions * 25),
+                    Position = UDim2.new(0, 0, 1, 0),
+                    Theme = {
+                        BackgroundColor3 = "Secondary"
+                    },
+                    Visible = false,
+                    ZIndex = 100
+                }, {
+                    Ruvex:CreateCorner(4),
+                    Ruvex:CreateStroke(Ruvex.CurrentTheme.Border, 1)
+                })
+                
+                local listLayout = Ruvex:CreateInstance("UIListLayout", {
+                    Parent = dropdownList,
+                    SortOrder = Enum.SortOrder.LayoutOrder
+                })
+                
+                -- Create options
+                for i, option in ipairs(dropdownOptions) do
+                    local optionButton = Ruvex:CreateInstance("TextButton", {
+                        Name = "Option",
+                        Parent = dropdownList,
+                        Size = UDim2.new(1, 0, 0, 25),
+                        Text = option,
+                        Font = Enum.Font.Gotham,
+                        TextSize = 12,
+                        BackgroundTransparency = 1,
+                        Theme = {
+                            TextColor3 = "Text"
+                        },
+                        LayoutOrder = i
+                    })
+                    
+                    optionButton.MouseEnter:Connect(function()
+                        Ruvex:Tween(optionButton, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Tertiary})
+                    end)
+                    
+                    optionButton.MouseLeave:Connect(function()
+                        Ruvex:Tween(optionButton, 0.2, {BackgroundTransparency = 1})
+                    end)
+                    
+                    optionButton.MouseButton1Click:Connect(function()
+                        dropdown.Value = option
+                        dropdownText.Text = option
+                        dropdown.Open = false
+                        dropdownList.Visible = false
+                        
+                        Ruvex:Tween(dropdownArrow, 0.2, {Rotation = 0})
+                        
+                        if dropdownFlag then
+                            Ruvex.Flags[dropdownFlag] = option
+                        end
+                        
+                        dropdownCallback(option)
+                    end)
+                end
+                
+                -- Dropdown Functionality
+                dropdownButton.MouseButton1Click:Connect(function()
+                    dropdown.Open = not dropdown.Open
+                    dropdownList.Visible = dropdown.Open
+                    
+                    if dropdown.Open then
+                        Ruvex:Tween(dropdownArrow, 0.2, {Rotation = 180})
+                    else
+                        Ruvex:Tween(dropdownArrow, 0.2, {Rotation = 0})
+                    end
+                end)
+                
+                function dropdown:Set(value)
+                    if table.find(dropdown.Options, value) then
+                        dropdown.Value = value
+                        dropdownText.Text = value
+                        
+                        if dropdownFlag then
+                            Ruvex.Flags[dropdownFlag] = value
+                        end
+                        
+                        dropdownCallback(value)
+                    end
+                end
+                
+                function dropdown:SetOptions(options)
+                    dropdown.Options = options
+                    
+                    -- Clear existing options
+                    for _, child in pairs(dropdownList:GetChildren()) do
+                        if child:IsA("TextButton") then
+                            child:Destroy()
+                        end
+                    end
+                    
+                    -- Create new options
+                    for i, option in ipairs(options) do
+                        local optionButton = Ruvex:CreateInstance("TextButton", {
+                            Name = "Option",
+                            Parent = dropdownList,
+                            Size = UDim2.new(1, 0, 0, 25),
+                            Text = option,
+                            Font = Enum.Font.Gotham,
+                            TextSize = 12,
+                            BackgroundTransparency = 1,
+                            Theme = {
+                                TextColor3 = "Text"
+                            },
+                            LayoutOrder = i
+                        })
+                        
+                        optionButton.MouseEnter:Connect(function()
+                            Ruvex:Tween(optionButton, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Tertiary})
+                        end)
+                        
+                        optionButton.MouseLeave:Connect(function()
+                            Ruvex:Tween(optionButton, 0.2, {BackgroundTransparency = 1})
+                        end)
+                        
+                        optionButton.MouseButton1Click:Connect(function()
+                            dropdown.Value = option
+                            dropdownText.Text = option
+                            dropdown.Open = false
+                            dropdownList.Visible = false
+                            
+                            Ruvex:Tween(dropdownArrow, 0.2, {Rotation = 0})
+                            
+                            if dropdownFlag then
+                                Ruvex.Flags[dropdownFlag] = option
+                            end
+                            
+                            dropdownCallback(option)
+                        end)
+                    end
+                    
+                    dropdownList.Size = UDim2.new(1, 0, 0, #options * 25)
+                end
+                
+                return dropdown
+            end
+            
+            function section:CreateTextbox(config)
+                config = config or {}
+                local textboxName = config.Name or "Textbox"
+                local textboxPlaceholder = config.Placeholder or "Enter text..."
+                local textboxDefault = config.Default or ""
+                local textboxCallback = config.Callback or function() end
+                local textboxFlag = config.Flag
+                
+                local textbox = {}
+                textbox.Value = textboxDefault
+                
+                if textboxFlag then
+                    Ruvex.Flags[textboxFlag] = textbox.Value
+                end
+                
+                -- Textbox Frame
+                local textboxFrame = Ruvex:CreateInstance("Frame", {
+                    Name = "TextboxFrame",
+                    Parent = sectionContent,
+                    Size = UDim2.new(1, 0, 0, 50),
+                    BackgroundTransparency = 1
+                })
+                
+                -- Textbox Label
+                local textboxLabel = Ruvex:CreateInstance("TextLabel", {
+                    Name = "TextboxLabel",
+                    Parent = textboxFrame,
+                    Size = UDim2.new(1, 0, 0, 20),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    Text = textboxName,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Theme = {
+                        TextColor3 = "Text"
+                    }
+                })
+                
+                -- Textbox Input
+                local textboxInput = Ruvex:CreateInstance("TextBox", {
+                    Name = "TextboxInput",
+                    Parent = textboxFrame,
+                    Size = UDim2.new(1, 0, 0, 25),
+                    Position = UDim2.new(0, 0, 1, -25),
+                    Text = textboxDefault,
+                    PlaceholderText = textboxPlaceholder,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 12,
+                    Theme = {
+                        BackgroundColor3 = "Tertiary",
+                        TextColor3 = "Text",
+                        PlaceholderColor3 = "TextDim"
+                    },
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ClearButtonOnFocus = false
+                }, {
+                    Ruvex:CreateCorner(4),
+                    Ruvex:CreateStroke(Ruvex.CurrentTheme.Border, 1)
+                })
+                
+                local inputPadding = Ruvex:CreateInstance("UIPadding", {
+                    Parent = textboxInput,
+                    PaddingLeft = UDim.new(0, 10),
+                    PaddingRight = UDim.new(0, 10)
+                })
+                
+                -- Textbox Functionality
+                textboxInput.FocusLost:Connect(function(enterPressed)
+                    textbox.Value = textboxInput.Text
+                    
+                    if textboxFlag then
+                        Ruvex.Flags[textboxFlag] = textbox.Value
+                    end
+                    
+                    textboxCallback(textbox.Value, enterPressed)
+                end)
+                
+                function textbox:Set(value)
+                    textbox.Value = value
+                    textboxInput.Text = value
+                    
+                    if textboxFlag then
+                        Ruvex.Flags[textboxFlag] = value
+                    end
+                    
+                    textboxCallback(value, false)
+                end
+                
+                return textbox
+            end
+            
+            function section:CreateColorPicker(config)
+                config = config or {}
+                local colorName = config.Name or "Color Picker"
+                local colorDefault = config.Default or Color3.fromRGB(255, 0, 0)
+                local colorCallback = config.Callback or function() end
+                local colorFlag = config.Flag
+                
+                local colorPicker = {}
+                colorPicker.Value = colorDefault
+                colorPicker.Open = false
+                
+                if colorFlag then
+                    Ruvex.Flags[colorFlag] = colorPicker.Value
+                end
+                
+                -- Color Picker Frame
+                local colorFrame = Ruvex:CreateInstance("Frame", {
+                    Name = "ColorFrame",
+                    Parent = sectionContent,
+                    Size = UDim2.new(1, 0, 0, 50),
+                    BackgroundTransparency = 1
+                })
+                
+                -- Color Label
+                local colorLabel = Ruvex:CreateInstance("TextLabel", {
+                    Name = "ColorLabel",
+                    Parent = colorFrame,
+                    Size = UDim2.new(1, -35, 0, 20),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    Text = colorName,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Theme = {
+                        TextColor3 = "Text"
+                    }
+                })
+                
+                -- Color Display
+                local colorDisplay = Ruvex:CreateInstance("TextButton", {
+                    Name = "ColorDisplay",
+                    Parent = colorFrame,
+                    Size = UDim2.new(0, 30, 0, 25),
+                    Position = UDim2.new(1, -30, 1, -25),
+                    BackgroundColor3 = colorDefault,
+                    Text = ""
+                }, {
+                    Ruvex:CreateCorner(4),
+                    Ruvex:CreateStroke(Ruvex.CurrentTheme.Border, 1)
+                })
+                
+                -- Rainbow animation for color picker
+                coroutine.wrap(function()
+                    while colorDisplay.Parent do
+                        if colorPicker.Open then
+                            colorDisplay.BackgroundColor3 = Color3.fromHSV(Ruvex.RainbowColorValue, 1, 1)
+                            wait(0.1)
+                        else
+                            wait(1)
+                        end
+                    end
+                end)()
+                
+                colorDisplay.MouseButton1Click:Connect(function()
+                    colorPicker.Open = not colorPicker.Open
+                    if colorPicker.Open then
+                        -- Simple rainbow color picker
+                        colorDisplay.BackgroundColor3 = Color3.fromHSV(Ruvex.RainbowColorValue, 1, 1)
+                        colorPicker.Value = colorDisplay.BackgroundColor3
+                        
+                        if colorFlag then
+                            Ruvex.Flags[colorFlag] = colorPicker.Value
+                        end
+                        
+                        colorCallback(colorPicker.Value)
+                    end
+                end)
+                
+                function colorPicker:Set(color)
+                    colorPicker.Value = color
+                    colorDisplay.BackgroundColor3 = color
+                    
+                    if colorFlag then
+                        Ruvex.Flags[colorFlag] = color
+                    end
+                    
+                    colorCallback(color)
+                end
+                
+                return colorPicker
+            end
+            
+            function section:CreateKeybind(config)
+                config = config or {}
+                local keybindName = config.Name or "Keybind"
+                local keybindDefault = config.Default or Enum.KeyCode.F
+                local keybindCallback = config.Callback or function() end
+                local keybindFlag = config.Flag
+                
+                local keybind = {}
+                keybind.Value = keybindDefault
+                keybind.Listening = false
+                
+                if keybindFlag then
+                    Ruvex.Flags[keybindFlag] = keybind.Value
+                end
+                
+                -- Keybind Frame
+                local keybindFrame = Ruvex:CreateInstance("Frame", {
+                    Name = "KeybindFrame",
+                    Parent = sectionContent,
+                    Size = UDim2.new(1, 0, 0, 35),
+                    BackgroundTransparency = 1
+                })
+                
+                -- Keybind Label
+                local keybindLabel = Ruvex:CreateInstance("TextLabel", {
+                    Name = "KeybindLabel",
+                    Parent = keybindFrame,
+                    Size = UDim2.new(1, -80, 1, 0),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    Text = keybindName,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Theme = {
+                        TextColor3 = "Text"
+                    }
+                })
+                
+                -- Keybind Button
+                local keybindButton = Ruvex:CreateInstance("TextButton", {
+                    Name = "KeybindButton",
+                    Parent = keybindFrame,
+                    Size = UDim2.new(0, 75, 0, 25),
+                    Position = UDim2.new(1, -75, 0.5, -12.5),
+                    Text = tostring(keybindDefault):gsub("Enum.KeyCode.", ""),
+                    Font = Enum.Font.Gotham,
+                    TextSize = 11,
+                    Theme = {
+                        BackgroundColor3 = "Tertiary",
+                        TextColor3 = "Text"
+                    }
+                }, {
+                    Ruvex:CreateCorner(4),
+                    Ruvex:CreateStroke(Ruvex.CurrentTheme.Border, 1)
+                })
+                
+                -- Keybind Functionality
+                keybindButton.MouseButton1Click:Connect(function()
+                    if not keybind.Listening then
+                        keybind.Listening = true
+                        keybindButton.Text = "..."
+                        Ruvex:Tween(keybindButton, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Accent})
+                    end
+                end)
+                
+                UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                    if keybind.Listening and input.UserInputType == Enum.UserInputType.Keyboard then
+                        keybind.Listening = false
+                        keybind.Value = input.KeyCode
+                        keybindButton.Text = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
+                        Ruvex:Tween(keybindButton, 0.2, {BackgroundColor3 = Ruvex.CurrentTheme.Tertiary})
+                        
+                        if keybindFlag then
+                            Ruvex.Flags[keybindFlag] = keybind.Value
+                        end
+                    end
+                    
+                    if not gameProcessed and input.KeyCode == keybind.Value then
+                        keybindCallback()
+                    end
+                end)
+                
+                function keybind:Set(keycode)
+                    keybind.Value = keycode
+                    keybindButton.Text = tostring(keycode):gsub("Enum.KeyCode.", "")
+                    
+                    if keybindFlag then
+                        Ruvex.Flags[keybindFlag] = keycode
+                    end
+                end
+                
+                return keybind
+            end
+            
+            function section:CreateLabel(config)
+                config = config or {}
+                local labelText = config.Text or "Label"
+                local labelSize = config.Size or 13
+                
+                local label = {}
+                
+                -- Label Frame
+                local labelFrame = Ruvex:CreateInstance("TextLabel", {
+                    Name = "LabelFrame",
+                    Parent = sectionContent,
+                    Size = UDim2.new(1, 0, 0, 20),
+                    Text = labelText,
+                    Font = Enum.Font.Gotham,
+                    TextSize = labelSize,
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextWrapped = true,
+                    Theme = {
+                        TextColor3 = "TextSecondary"
+                    }
+                })
+                
+                function label:Set(text)
+                    labelFrame.Text = text
+                end
+                
+                return label
+            end
+            
+            function section:CreateSeparator()
+                local separator = Ruvex:CreateInstance("Frame", {
+                    Name = "Separator",
+                    Parent = sectionContent,
+                    Size = UDim2.new(1, 0, 0, 10),
+                    BackgroundTransparency = 1
+                })
+                
+                local line = Ruvex:CreateInstance("Frame", {
+                    Name = "Line",
+                    Parent = separator,
+                    Size = UDim2.new(1, 0, 0, 1),
+                    Position = UDim2.new(0, 0, 0.5, 0),
+                    Theme = {
+                        BackgroundColor3 = "Border"
+                    }
+                })
+                
+                return separator
+            end
+            
+            return section
+        end
+        
+        -- Store tab data
+        tab.Button = tabButton
+        tab.Content = tabContent
+        tab.TextLabel = tabText
+        tab.IconLabel = tabIcon ~= "" and tabButton:FindFirstChild("TabIcon") or nil
+        table.insert(window.Tabs, tab)
+        
+        -- Select first tab by default
+        if #window.Tabs == 1 then
+            tabButton.MouseButton1Click:Connect(function() end)()
+        end
+        
+        return tab
+    end
+    
+    -- Notification System
+    function window:CreateNotification(config)
+        config = config or {}
+        local title = config.Title or "Notification"
+        local text = config.Text or "This is a notification"
+        local duration = config.Duration or 3
+        local notifType = config.Type or "Info"
+        
+        local notificationFrame = Ruvex:CreateInstance("Frame", {
+            Name = "Notification",
+            Parent = screenGui,
+            Size = UDim2.new(0, 300, 0, 80),
+            Position = UDim2.new(1, 10, 1, -100),
+            Theme = {
+                BackgroundColor3 = "Secondary"
+            },
+            ZIndex = 1000
+        }, {
+            Ruvex:CreateCorner(8),
+            Ruvex:CreateStroke(Ruvex.CurrentTheme.BorderAccent, 1)
+        })
+        
+        local notifTitle = Ruvex:CreateInstance("TextLabel", {
+            Name = "NotifTitle",
+            Parent = notificationFrame,
+            Size = UDim2.new(1, -20, 0, 25),
+            Position = UDim2.new(0, 10, 0, 10),
+            Text = title,
+            Font = Enum.Font.GothamBold,
+            TextSize = 14,
+            BackgroundTransparency = 1,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Theme = {
+                TextColor3 = "Text"
+            }
+        })
+        
+        local notifText = Ruvex:CreateInstance("TextLabel", {
+            Name = "NotifText",
+            Parent = notificationFrame,
+            Size = UDim2.new(1, -20, 0, 35),
+            Position = UDim2.new(0, 10, 0, 35),
+            Text = text,
+            Font = Enum.Font.Gotham,
+            TextSize = 12,
+            BackgroundTransparency = 1,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextYAlignment = Enum.TextYAlignment.Top,
+            TextWrapped = true,
+            Theme = {
+                TextColor3 = "TextSecondary"
+            }
+        })
+        
+        -- Animate in
+        Ruvex:Tween(notificationFrame, 0.3, {Position = UDim2.new(1, -310, 1, -100)})
+        
+        -- Auto remove
+        wait(duration)
+        Ruvex:Tween(notificationFrame, 0.3, {Position = UDim2.new(1, 10, 1, -100)}, Enum.EasingStyle.Back, Enum.EasingDirection.In, function()
+            notificationFrame:Destroy()
+        end)
+    end
+    
+    return window
 end
 
+-- Usage Example
 --[[
-EXAMPLE USAGE:
+    
+    -- Load the Ruvex library
+    local Ruvex = loadstring(game:HttpGet("path/to/ruvex.lua"))()
+    
+    -- Create a window
+    local Window = Ruvex:CreateWindow({
+        Name = "Ruvex UI Library",
+        Size = UDim2.new(0, 650, 0, 450),
+        ToggleKey = Enum.KeyCode.RightControl
+    })
+    
+    -- Create tabs
+    local MainTab = Window:CreateTab({
+        Name = "Main",
+        Icon = "rbxassetid://4483345998"
+    })
+    
+    local SettingsTab = Window:CreateTab({
+        Name = "Settings",
+        Icon = "rbxassetid://4483345998"
+    })
+    
+    -- Create sections in the main tab
+    local CombatSection = MainTab:CreateSection({
+        Name = "Combat",
+        Side = "Left"
+    })
+    
+    local MovementSection = MainTab:CreateSection({
+        Name = "Movement", 
+        Side = "Right"
+    })
+    
+    -- Add UI elements to sections
+    local aimbot = CombatSection:CreateToggle({
+        Name = "Aimbot",
+        Default = false,
+        Callback = function(value)
+            print("Aimbot:", value)
+        end,
+        Flag = "Aimbot"
+    })
+    
+    local aimbotKey = CombatSection:CreateKeybind({
+        Name = "Aimbot Key",
+        Default = Enum.KeyCode.E,
+        Callback = function()
+            print("Aimbot key pressed!")
+        end,
+        Flag = "AimbotKey"
+    })
+    
+    local fov = CombatSection:CreateSlider({
+        Name = "FOV",
+        Min = 50,
+        Max = 200,
+        Default = 90,
+        Increment = 1,
+        Callback = function(value)
+            print("FOV:", value)
+        end,
+        Flag = "FOV"
+    })
+    
+    local weapon = CombatSection:CreateDropdown({
+        Name = "Weapon",
+        Options = {"AK47", "M4A4", "AWP", "Deagle"},
+        Default = "AK47",
+        Callback = function(value)
+            print("Selected weapon:", value)
+        end,
+        Flag = "Weapon"
+    })
+    
+    local crosshairColor = CombatSection:CreateColorPicker({
+        Name = "Crosshair Color",
+        Default = Color3.fromRGB(255, 0, 0),
+        Callback = function(color)
+            print("Crosshair color:", color)
+        end,
+        Flag = "CrosshairColor"
+    })
+    
+    local speed = MovementSection:CreateSlider({
+        Name = "Speed",
+        Min = 16,
+        Max = 100,
+        Default = 16,
+        Increment = 1,
+        Callback = function(value)
+            print("Speed:", value)
+        end,
+        Flag = "Speed"
+    })
+    
+    local jumpHeight = MovementSection:CreateSlider({
+        Name = "Jump Height",
+        Min = 50,
+        Max = 200,
+        Default = 50,
+        Increment = 5,
+        Callback = function(value)
+            print("Jump Height:", value)
+        end,
+        Flag = "JumpHeight"
+    })
+    
+    local fly = MovementSection:CreateToggle({
+        Name = "Fly",
+        Default = false,
+        Callback = function(value)
+            print("Fly:", value)
+        end,
+        Flag = "Fly"
+    })
+    
+    local playerName = MovementSection:CreateTextbox({
+        Name = "Player Name",
+        Placeholder = "Enter player name...",
+        Default = "",
+        Callback = function(value)
+            print("Player name:", value)
+        end,
+        Flag = "PlayerName"
+    })
+    
+    MovementSection:CreateSeparator()
+    
+    MovementSection:CreateLabel({
+        Text = "Movement settings for enhanced gameplay"
+    })
+    
+    local resetButton = MovementSection:CreateButton({
+        Name = "Reset Settings",
+        Callback = function()
+            aimbot:Set(false)
+            speed:Set(16)
+            jumpHeight:Set(50)
+            fly:Set(false)
+            print("Settings reset!")
+        end
+    })
+    
+    -- Settings tab
+    local GeneralSection = SettingsTab:CreateSection({
+        Name = "General",
+        Side = "Left"
+    })
+    
+    local themes = GeneralSection:CreateDropdown({
+        Name = "Theme",
+        Options = {"Dark", "Light", "Blue", "Green"},
+        Default = "Dark",
+        Callback = function(value)
+            print("Theme changed to:", value)
+        end,
+        Flag = "Theme"
+    })
+    
+    local autoSave = GeneralSection:CreateToggle({
+        Name = "Auto Save",
+        Default = true,
+        Callback = function(value)
+            print("Auto save:", value)
+        end,
+        Flag = "AutoSave"
+    })
+    
+    local configName = GeneralSection:CreateTextbox({
+        Name = "Config Name",
+        Placeholder = "default",
+        Default = "default",
+        Callback = function(value)
+            print("Config name:", value)
+        end,
+        Flag = "ConfigName"
+    })
+    
+    local saveButton = GeneralSection:CreateButton({
+        Name = "Save Config",
+        Callback = function()
+            -- Save configuration logic here
+            Window:CreateNotification({
+                Title = "Config Saved",
+                Text = "Your configuration has been saved successfully!",
+                Duration = 3,
+                Type = "Success"
+            })
+        end
+    })
+    
+    local loadButton = GeneralSection:CreateButton({
+        Name = "Load Config",
+        Callback = function()
+            -- Load configuration logic here
+            Window:CreateNotification({
+                Title = "Config Loaded", 
+                Text = "Configuration loaded successfully!",
+                Duration = 3,
+                Type = "Info"
+            })
+        end
+    })
+    
+    -- Access flag values
+    print("Current aimbot state:", Ruvex.Flags.Aimbot)
+    print("Current FOV:", Ruvex.Flags.FOV)
+    
+--]]
 
--- Load the library
-local Ruvex = loadstring(game:HttpGet("path/to/ruvex.lua"))()
-
--- Create a window
-local Window = Ruvex:CreateWindow("Ruvex UI Library", {
-    Size = UDim2.new(0, 600, 0, 500)
-})
-
--- Create tabs
-local MainTab = Window:CreateTab("Main Features")
-local SettingsTab = Window:CreateTab("Settings")
-local ConfigTab = Window:CreateTab("Configuration")
-
--- Add components to Main tab
-MainTab:CreateSection("Basic Components")
-
-MainTab:CreateButton({
-    Text = "Test Button",
-    Callback = function()
-        print("Button clicked!")
-        Ruvex:CreateNotification({
-            Title = "Success",
-            Text = "Button was clicked successfully!",
-            Duration = 2
-        })
-    end
-})
-
-MainTab:CreateToggle({
-    Text = "Enable Feature",
-    Default = false,
-    Flag = "EnableFeature",
-    Callback = function(value)
-        print("Toggle set to:", value)
-    end
-})
-
-MainTab:CreateSlider({
-    Text = "Slider Value",
-    Min = 0,
-    Max = 100,
-    Default = 50,
-    Increment = 1,
-    Flag = "SliderValue",
-    Callback = function(value)
-        print("Slider value:", value)
-    end
-})
-
-MainTab:CreateDropdown({
-    Text = "Select Option",
-    Options = {"Option 1", "Option 2", "Option 3"},
-    Default = "Option 1",
-    Flag = "SelectedOption",
-    Callback = function(value)
-        print("Selected:", value)
-    end
-})
-
-MainTab:CreateTextBox({
-    Text = "Enter Text",
-    Placeholder = "Type something...",
-    Default = "",
-    Flag = "UserText",
-    Callback = function(value)
-        print("Text entered:", value)
-    end
-})
-
--- Add components to Settings tab
-SettingsTab:CreateSection("Library Settings")
-
-SettingsTab:CreateLabel({
-    Text = "Ruvex UI Library v3.0.0"
-})
-
-SettingsTab:CreateButton({
-    Text = "Change Theme",
-    Callback = function()
-        -- You can add more themes and switch between them
-        print("Theme changed!")
-    end
-})
-
--- Add components to Config tab
-ConfigTab:CreateSection("Configuration Management")
-
-ConfigTab:CreateButton({
-    Text = "Save Config",
-    Callback = function()
-        Ruvex:SaveConfig("MyConfig")
-        Ruvex:CreateNotification({
-            Title = "Config Saved",
-            Text = "Configuration saved successfully!",
-            Duration = 2
-        })
-    end
-})
-
-ConfigTab:CreateButton({
-    Text = "Load Config",
-    Callback = function()
-        Ruvex:LoadConfig("MyConfig")
-        Ruvex:CreateNotification({
-            Title = "Config Loaded",
-            Text = "Configuration loaded successfully!",
-            Duration = 2
-        })
-    end
-})
-
--- Access flag values
-print("Current flags:", Ruvex.Flags)
-]]
-
--- Return the library
 return Ruvex
